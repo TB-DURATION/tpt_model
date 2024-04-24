@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -34,6 +68,8 @@ ul.task-list li input[type="checkbox"] {
 <link href="tpt_model_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="tpt_model_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
 
@@ -48,6 +84,16 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
   <li><a href="#packages" id="toc-packages" class="nav-link" data-scroll-target="#packages"><span class="header-section-number">2</span> Packages</a></li>
   <li><a href="#utilitary-functions" id="toc-utilitary-functions" class="nav-link" data-scroll-target="#utilitary-functions"><span class="header-section-number">3</span> Utilitary functions</a></li>
+  <li><a href="#epidemiological-model" id="toc-epidemiological-model" class="nav-link" data-scroll-target="#epidemiological-model"><span class="header-section-number">4</span> Epidemiological model</a>
+  <ul class="collapse">
+  <li><a href="#assumptions" id="toc-assumptions" class="nav-link" data-scroll-target="#assumptions"><span class="header-section-number">4.1</span> Assumptions</a></li>
+  <li><a href="#variables" id="toc-variables" class="nav-link" data-scroll-target="#variables"><span class="header-section-number">4.2</span> Variables</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters"><span class="header-section-number">4.3</span> Parameters</a></li>
+  <li><a href="#flow-diagram" id="toc-flow-diagram" class="nav-link" data-scroll-target="#flow-diagram"><span class="header-section-number">4.4</span> Flow diagram</a></li>
+  <li><a href="#differential-equations" id="toc-differential-equations" class="nav-link" data-scroll-target="#differential-equations"><span class="header-section-number">4.5</span> Differential equations</a></li>
+  <li><a href="#r-code" id="toc-r-code" class="nav-link" data-scroll-target="#r-code"><span class="header-section-number">4.6</span> R code</a></li>
+  <li><a href="#tb-data" id="toc-tb-data" class="nav-link" data-scroll-target="#tb-data"><span class="header-section-number">4.7</span> TB data</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -77,9 +123,132 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="packages" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="packages"><span class="header-section-number">2</span> Packages</h2>
+<p>Required: <code>deSolve</code>, <code>tibble</code></p>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-1_1a990245ac2fc76828fa4ecc6ef6b812">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 <section id="utilitary-functions" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="utilitary-functions"><span class="header-section-number">3</span> Utilitary functions</h2>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-2_691b4da7c705f495072d6162514f3ace">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ode2 <span class="ot">&lt;-</span> <span class="cf">function</span>(...) tibble<span class="sc">::</span><span class="fu">as_tibble</span>(<span class="fu">as.data.frame</span>(deSolve<span class="sc">::</span><span class="fu">ode</span>(...)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="epidemiological-model" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="epidemiological-model"><span class="header-section-number">4</span> Epidemiological model</h2>
+<section id="assumptions" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="assumptions"><span class="header-section-number">4.1</span> Assumptions</h3>
+<ul>
+<li>Constant population size</li>
+<li>No population structure other than clinical status</li>
+</ul>
+</section>
+<section id="variables" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="variables"><span class="header-section-number">4.2</span> Variables</h3>
+<ul>
+<li><span class="math inline">\(S\)</span>: non-infected</li>
+<li><span class="math inline">\(I_1\)</span>: recently infected</li>
+<li><span class="math inline">\(I_2\)</span>: infected a long time ago</li>
+<li><span class="math inline">\(I_3\)</span>: treated but not sterilized</li>
+<li><span class="math inline">\(D\)</span>: sick and infectious (we do not discriminate PTB from EPTB)</li>
+<li><span class="math inline">\(N = S + I_1 + I_2 + I_3 + D\)</span></li>
+</ul>
+<p><strong>Note:</strong> only <span class="math inline">\(D\)</span> are infectious.</p>
+</section>
+<section id="parameters" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="parameters"><span class="header-section-number">4.3</span> Parameters</h3>
+<ul>
+<li><span class="math inline">\(\beta\)</span>: infectious contact rate (/ind)</li>
+<li><span class="math inline">\(\sigma_1\)</span> and <span class="math inline">\(\sigma_2\)</span>: clearance rates of <span class="math inline">\(I_1\)</span> and <span class="math inline">\(I_2\)</span> respectively, either through natural immunity or prophylactic treatment</li>
+<li><span class="math inline">\(\delta_1\)</span>, <span class="math inline">\(\delta_2\)</span> and <span class="math inline">\(\delta_3\)</span>: progression rates of infection to disease for <span class="math inline">\(I_1\)</span>, <span class="math inline">\(I_2\)</span> and <span class="math inline">\(I_3\)</span> (relapse) respectively</li>
+<li><span class="math inline">\(\gamma\)</span>: rate of recovery with clearance either from treatment or natural immunity</li>
+<li><span class="math inline">\(\rho\)</span>: rate of recovery without clearance (ultimately leading to relapse)</li>
+<li><span class="math inline">\(\tau\)</span>: rate at which infected transit from a status of recent infection to a status of non-recent infection</li>
+<li><span class="math inline">\(\mu\)</span>: demographic turn-over rate (<em>i.e.</em> birth and death rates equal, see assumption on constant population size)</li>
+<li><span class="math inline">\(\alpha\)</span>: death rate due to TB</li>
+</ul>
+<p><strong>Note:</strong> all these rates are <em>per year</em> and <em>per capita</em>.</p>
+</section>
+<section id="flow-diagram" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="flow-diagram"><span class="header-section-number">4.4</span> Flow diagram</h3>
+<div id="fig-model-diagram" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="SI1I2I3D.png" class="img-fluid figure-img" width="450"></p>
+<figcaption class="figure-caption">Figure&nbsp;1: Flow diagram of the epidemiological model.</figcaption>
+</figure>
+</div>
+</section>
+<section id="differential-equations" class="level3" data-number="4.5">
+<h3 data-number="4.5" class="anchored" data-anchor-id="differential-equations"><span class="header-section-number">4.5</span> Differential equations</h3>
+<p><span class="math display">\[
+\begin{align}
+  \frac{dS}{dt}   &amp;= \mu N + \sigma_1 I_1 + \sigma_2 I_2 + \gamma D -
+     \left(\mu + \beta \frac{D}{N} \right) S                                          \\
+  \frac{dI_1}{dt} &amp;= \beta \frac{D}{N} S - (\mu + \sigma_1 + \delta_1 + \tau) I_1     \\
+  \frac{dI_2}{dt} &amp;= \tau I_1 - (\mu + \delta_2 + \sigma_2) I_2                       \\
+  \frac{dI_3}{dt} &amp;= \rho D - (\mu + \delta_3) I_3                                    \\
+  \frac{dD}{dt}   &amp;= \delta_1 I_1 + \delta_2 I_2 + \delta_3 I_3 -
+     (\mu + \alpha + \gamma + \rho) D
+\end{align}
+\]</span></p>
+</section>
+<section id="r-code" class="level3" data-number="4.6">
+<h3 data-number="4.6" class="anchored" data-anchor-id="r-code"><span class="header-section-number">4.6</span> R code</h3>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-3_a7fdcbb5fb91feb7603ec4c27b099e8c">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>epi_dynamics <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    S0, I10, I20, I30, D0,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    beta, sigma1, sigma2, delta1, delta2, delta3, gamma, tau, rho, mu, alpha, times) {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> S0 <span class="sc">+</span> I10 <span class="sc">+</span> I20 <span class="sc">+</span> I30 <span class="sc">+</span> D0</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ode2</span>(<span class="fu">c</span>(<span class="at">S =</span> S0, <span class="at">I1 =</span> I10, <span class="at">I2 =</span> I20, <span class="at">I3 =</span> I30, <span class="at">D =</span> D0),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>       times,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>       <span class="cf">function</span>(time, state, pars) {</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>         <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(state, pars)), {</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>           foi <span class="ot">&lt;-</span> beta <span class="sc">*</span> D <span class="sc">*</span> S <span class="sc">/</span> N</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>           dS  <span class="ot">&lt;-</span> mu <span class="sc">*</span> (N <span class="sc">-</span> S) <span class="sc">+</span> sigma1 <span class="sc">*</span> I1 <span class="sc">+</span> sigma2 <span class="sc">*</span> I2 <span class="sc">+</span> gamma <span class="sc">*</span> D <span class="sc">-</span> foi</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>           dI1 <span class="ot">&lt;-</span> foi <span class="sc">-</span> (mu <span class="sc">+</span> sigma1 <span class="sc">+</span> delta1 <span class="sc">+</span> tau) <span class="sc">*</span> I1</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>           dI2 <span class="ot">&lt;-</span> tau <span class="sc">*</span> I1 <span class="sc">-</span> (mu <span class="sc">+</span> delta2 <span class="sc">+</span> sigma2) <span class="sc">*</span> I2</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>           dI3 <span class="ot">&lt;-</span> rho <span class="sc">*</span> D <span class="sc">-</span> (mu <span class="sc">+</span> delta3) <span class="sc">*</span> I3</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>           dD  <span class="ot">&lt;-</span> delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2 <span class="sc">+</span> delta3 <span class="sc">*</span> I3 <span class="sc">-</span> (mu <span class="sc">+</span> alpha <span class="sc">+</span> gamma <span class="sc">+</span> rho) <span class="sc">*</span> D</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>           <span class="fu">list</span>(<span class="fu">c</span>(dS, dI1, dI2, dI3, dD))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>         })</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>       },</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="at">beta =</span> beta, <span class="at">gamma =</span> gamma, <span class="at">rho =</span> rho,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">sigma1 =</span> sigma1, <span class="at">sigma2 =</span> sigma2,</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">delta1 =</span> delta1, <span class="at">delta2 =</span> delta2, <span class="at">delta3 =</span> delta3,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha))</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="tb-data" class="level3" data-number="4.7">
+<h3 data-number="4.7" class="anchored" data-anchor-id="tb-data"><span class="header-section-number">4.7</span> TB data</h3>
+<ul>
+<li>infection prevalence: 322 (95% CI: 260–399) TB cases/100,000 adults (<a href="https://doi.org/10.1371/journal.pone.0232142">Nguyen <em>et al.</em> PLoS ONE 2020</a>)</li>
+<li>5-10% of those infected develop TB in their lifetime</li>
+<li>125,000 new TB cases in Vietnam in 2018</li>
+</ul>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-4_3a5817e1b575d940310d71f050c061a1">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">epi_dynamics</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">S0     =</span> <span class="fl">1e5</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">I10    =</span> ,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">I20    =</span> ,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">I30    =</span> ,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">D0     =</span> ,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">beta   =</span> <span class="dv">8</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma1 =</span> ,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma2 =</span> ,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta1 =</span> ,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta2 =</span> ,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta3 =</span> .<span class="dv">01</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">gamma  =</span> ,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau    =</span> ,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">rho    =</span> .<span class="dv">15</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu     =</span> .<span class="dv">02</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha  =</span> .<span class="dv">3</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">times  =</span> )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
 </section>
 
 </main>
