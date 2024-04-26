@@ -133,28 +133,6 @@ sid <- function(
 ```
 
 ```{r}
-sid2 <- function(y0, parms, times) {with(c(y0, parms), {
-    
-  N <- S0 + I0 + D0
-  
-  ode2(c(S = S0, I = I0, D = D0),
-       times,
-       function(time, state, pars) {
-         with(as.list(c(state, pars)), {
-           foi <- beta * D * S
-           dS  <- mu * (N - S) + (sigma + pi) * I + (alpha + q * gamma) * D - foi
-           dI  <- foi + (rho + (1 - q) * gamma) * D - (sigma + pi + delta + mu) * I
-           dD  <- delta * I - (alpha + gamma + rho + mu) * D
-           list(c(dS, dI, dD))
-         })
-       },
-       c(beta = beta, sigma = sigma, delta = delta, gamma = gamma, q = q, rho = rho,
-         mu = mu, alpha = alpha, pi = pi))
-})}
-```
-
-
-```{r}
 sid_sim <- sid(S0    = 1e5 - 350,
                I0    = 0,
                D0    = 350,
@@ -214,16 +192,12 @@ par(opar)
 * disease incidence: 
 
 ```{r}
-f <- function(a, b) {
-  a + b
-}
-
-f(1, 2)
-
-do.call(f, list(a = 1), b = 2)
-
 equilibrium <- function(f, args) {
-  do.call(f, args)
+  out <- do.call(f, args)
+  
+  nr <- nrow(out)
+  final <- sid_sim[c(nr - 10, nr), -1]
+  
 }
 ```
 
