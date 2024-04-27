@@ -23,9 +23,9 @@ knitr::opts_chunk$set(echo       = TRUE,
                       fig.align  = "center")
 ```
 
-All the data and source code files are [here](https://github.com/TB-DURATION/mice).
+All the data and source code files are [here](https://github.com/TB-DURATION/tpt-model).
 
-You can ask report errors or for additional analysis [here](https://github.com/TB-DURATION/mice/issues).
+You can ask report errors or for additional analysis [here](https://github.com/TB-DURATION/tpt-model/issues).
 
 ## Introduction
 
