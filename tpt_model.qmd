@@ -68,11 +68,11 @@ infected, those infected but not infectious, and those infected, sick and infect
 This model contains human demography but the total population size is kept constant
 (i.e. birth and death rates are equal). It also contains:
 
-* clearance from both infected (natural or through prophylaxis) and diseased (natural or
-  through curative treatment)
-* curation can be with or without sterilization
-* relapse (following recovery without clearance)
-* mortality from diseased
+* clearance from infected, from natural immunity of through prophylactic treatment
+* recovery from disease, with and without clearance, from natural immunity or through
+  curative treatment
+* possibility of relapse (following recovery without clearance)
+* mortality from disease
 
 ![Flow diagram of the SID epidemiological model.](SID.png){width=450 #fig-model-diagram}
 
@@ -87,15 +87,15 @@ Note that $S + I + D = N$ where $N$ is a constant.
 ### Parameters
 
 * $\beta$: infectious contact rate (/ind)
-* $\sigma$: clearance rate of $I$, either through natural immunity or prophylactic
-  treatment
-* $\delta$: progression rates of infection to disease
-* $\rho$: rate of recovery without clearance (ultimately leading to relapse)
-* $\gamma$: rate of recovery with clearance either from treatment or natural immunity
-* $q$: probability that curation comes with sterilization
-* $\mu$: demographic turn-over rate (*i.e.* birth and death rates equal, see assumption
-  on constant population size)
-* $\alpha$: death rate due to TB
+* $\delta$: progression rate of infection to disease
+* $\sigma$: clearance rate of infected through natural immunity 
+* $\pi$: clearance rate of infected through prophylactic treatment
+* $\gamma$: rate of disease recovery from natural immunity
+* $p$: probability that disease recovery from natural immunity comes with clearance
+* $\tau$: rate of disease recovery from curative treatment
+* $q$: probability that disease recovery from curative treatment comes with clearance
+* $\alpha$: death rate due to disease
+* $\mu$: natural birth and death rates
 
 ### Dynamics
 
@@ -103,9 +103,11 @@ Differential equations
 
 $$
 \begin{align} 
-  \frac{dS}{dt}   &= \mu N + (\sigma + \pi) I + (\alpha + q\gamma) D - (\beta D + \mu) S         \\
-  \frac{dI}{dt}   &= \beta D S + (\rho + [1 - q] \gamma) D                     - (\sigma + \pi + \delta + \mu) I \\
-  \frac{dD}{dt}   &= \delta I                               - (\alpha + \gamma + \rho + \mu) D
+  \frac{dS}{dt}   &= (\sigma + \mu + \tau) I +
+                     (p \gamma + q \tau + \alpha + \mu) D - \beta D S                 \\
+  \frac{dI}{dt}   &= \beta D S + ([1 - p] \gamma + [1 - q] \tau) D -
+                     (\delta + \sigma + \mu + \tau) I                                 \\
+  \frac{dD}{dt}   &= \delta I - (\gamma + \tau + \alpha + \mu) D
 \end{align}
 $$
 
@@ -113,7 +115,7 @@ R code:
 
 ```{r}
 sid <- function(
-    S0, I0, D0, beta, sigma, delta, gamma, q, rho, mu, alpha, pi, times) {
+    S0, I0, D0, beta, delta, sigma, pi, gamma, p, tau, q, alpha, mu, times) {
   
   N <- S0 + I0 + D0
   
@@ -122,32 +124,35 @@ sid <- function(
        function(time, state, pars) {
          with(as.list(c(state, pars)), {
            foi <- beta * D * S
-           dS  <- mu * (N - S) + (sigma + pi) * I + (alpha + q * gamma) * D - foi
-           dI  <- foi + (rho + (1 - q) * gamma) * D - (sigma + pi + delta + mu) * I
-           dD  <- delta * I - (alpha + gamma + rho + mu) * D
+           dS  <- (sigma + mu + tau) * I + (p * gamma + q * tau + alpha + mu) * D - foi
+           dI  <- foi + ((1 - p) * gamma + (1 - q) * tau) * D -
+                  (delta + sigma + mu + tau) * I
+           dD  <- delta * I - (gamma + tau + alpha + mu) * D
            list(c(dS, dI, dD))
          })
        },
-       c(beta = beta, sigma = sigma, delta = delta, gamma = gamma, q = q, rho = rho,
-         mu = mu, alpha = alpha, pi = pi))
+       c(beta = beta, delta = delta, sigma = sigma, pi = pi, gamma = gamma, p = p,
+         tau = tau, q = q, alpha = alpha, mu = mu))
 }
 ```
 
 Let's run an example:
 
 ```{r}
+delta <- .01
 sid_sim <- sid(S0    = 1e5 - 350,
                I0    = 0,
                D0    = 350,
                beta  = .00001,
-               sigma = 0, #.1,
-               delta = .04,
-               gamma = 1,
-               q     = .1,
-               rho   = 0,
-               mu    = 1 / 70,
-               alpha = 1 / 3,
+               delta = delta,
+               sigma = 0,
                pi    = 0,
+               gamma = 0,
+               p     = .1,
+               tau   = 0,
+               q     = .1,
+               alpha = 1 / 3,
+               mu    = 1 / 70,
                times = seq2(0, 10000))
 
 opar <- par(mfrow = c(1, 3))
@@ -155,7 +160,7 @@ opar <- par(mfrow = c(1, 3))
 with(sid_sim, {
   plotl(time, I, col = 2, xlab = "time (year)", ylab = "infection prevalence")
   plotl(time, D, col = 3, xlab = "time (year)", ylab = "disease prevalence")
-  plotl(time, .04 * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
+  plotl(time, delta * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
 })
 
 par(opar)
@@ -165,7 +170,7 @@ par(opar)
 
 * infection prevalence: somewhere between 10 and 30% of the population
 * disease prevalence: somewhere between 50 and 500 / 100,000
-* disease incidence: 
+* disease incidence: close to disease prevalence
 
 A function that looks for the endemic equilibrium:
 
@@ -182,7 +187,7 @@ equilibrium <- function(f, args, p = .1, eps = 1e-2) {
     out <- do.call(f, args)
     final <- sid_sim[from : nr, -1]
   }
-  unlist(final_val)
+  out <- unlist(final_val)
 }
 ```
 
@@ -193,17 +198,21 @@ args <- list(S0    = 1e5 - 350,
              I0    = 0,
              D0    = 350,
              beta  = .00001,
+             delta = .01,
              sigma = 0,
-             delta = .04,
-             gamma = 1,
-             q     = .1,
-             rho   = 0,
-             mu    = 1 / 70,
-             alpha = 1 / 3,
              pi    = 0,
+             gamma = 0,
+             p     = .1,
+             tau   = 0,
+             q     = .1,
+             alpha = 1 / 3,
+             mu    = 1 / 70,
              times = seq2(0, 10000))
 
-equilibrium(sid, args)
+
+out <- equilibrium(sid, args)
+# per 100,000:
+c(out, yearly_disease_incidence = args$delta * unname(out["I"]))
 ```
 
 
