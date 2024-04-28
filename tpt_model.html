@@ -84,30 +84,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
   <li><a href="#packages" id="toc-packages" class="nav-link" data-scroll-target="#packages"><span class="header-section-number">2</span> Packages</a></li>
   <li><a href="#utilitary-functions" id="toc-utilitary-functions" class="nav-link" data-scroll-target="#utilitary-functions"><span class="header-section-number">3</span> Utilitary functions</a></li>
-  <li><a href="#sid-model" id="toc-sid-model" class="nav-link" data-scroll-target="#sid-model"><span class="header-section-number">4</span> <span class="math inline">\(SID\)</span> model</a>
+  <li><a href="#epidemiological-models" id="toc-epidemiological-models" class="nav-link" data-scroll-target="#epidemiological-models"><span class="header-section-number">4</span> Epidemiological models</a>
   <ul class="collapse">
-  <li><a href="#variables" id="toc-variables" class="nav-link" data-scroll-target="#variables"><span class="header-section-number">4.1</span> Variables</a></li>
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters"><span class="header-section-number">4.2</span> Parameters</a></li>
-  <li><a href="#dynamics" id="toc-dynamics" class="nav-link" data-scroll-target="#dynamics"><span class="header-section-number">4.3</span> Dynamics</a></li>
-  <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration"><span class="header-section-number">4.4</span> Calibration</a></li>
-  </ul></li>
-  <li><a href="#si_ai_dd-model" id="toc-si_ai_dd-model" class="nav-link" data-scroll-target="#si_ai_dd-model"><span class="header-section-number">5</span> <span class="math inline">\(SI_aI_dD\)</span> model</a>
-  <ul class="collapse">
-  <li><a href="#variables-1" id="toc-variables-1" class="nav-link" data-scroll-target="#variables-1"><span class="header-section-number">5.1</span> Variables</a></li>
-  <li><a href="#parameters-1" id="toc-parameters-1" class="nav-link" data-scroll-target="#parameters-1"><span class="header-section-number">5.2</span> Parameters</a></li>
-  <li><a href="#dynamics-1" id="toc-dynamics-1" class="nav-link" data-scroll-target="#dynamics-1"><span class="header-section-number">5.3</span> Dynamics</a></li>
-  <li><a href="#equilibrium" id="toc-equilibrium" class="nav-link" data-scroll-target="#equilibrium"><span class="header-section-number">5.4</span> Equilibrium</a></li>
-  <li><a href="#numerical-verification" id="toc-numerical-verification" class="nav-link" data-scroll-target="#numerical-verification"><span class="header-section-number">5.5</span> Numerical verification</a></li>
-  </ul></li>
-  <li><a href="#epidemiological-model" id="toc-epidemiological-model" class="nav-link" data-scroll-target="#epidemiological-model"><span class="header-section-number">6</span> Epidemiological model</a>
-  <ul class="collapse">
-  <li><a href="#assumptions" id="toc-assumptions" class="nav-link" data-scroll-target="#assumptions"><span class="header-section-number">6.1</span> Assumptions</a></li>
-  <li><a href="#variables-2" id="toc-variables-2" class="nav-link" data-scroll-target="#variables-2"><span class="header-section-number">6.2</span> Variables</a></li>
-  <li><a href="#parameters-2" id="toc-parameters-2" class="nav-link" data-scroll-target="#parameters-2"><span class="header-section-number">6.3</span> Parameters</a></li>
-  <li><a href="#flow-diagram" id="toc-flow-diagram" class="nav-link" data-scroll-target="#flow-diagram"><span class="header-section-number">6.4</span> Flow diagram</a></li>
-  <li><a href="#differential-equations" id="toc-differential-equations" class="nav-link" data-scroll-target="#differential-equations"><span class="header-section-number">6.5</span> Differential equations</a></li>
-  <li><a href="#r-code" id="toc-r-code" class="nav-link" data-scroll-target="#r-code"><span class="header-section-number">6.6</span> R code</a></li>
-  <li><a href="#tb-data" id="toc-tb-data" class="nav-link" data-scroll-target="#tb-data"><span class="header-section-number">6.7</span> TB data</a></li>
+  <li><a href="#sid-model" id="toc-sid-model" class="nav-link" data-scroll-target="#sid-model"><span class="header-section-number">4.1</span> <span class="math inline">\(SID\)</span> model</a></li>
+  <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration"><span class="header-section-number">4.2</span> Calibration</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -131,16 +111,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>All the data and source code files are <a href="https://github.com/TB-DURATION/mice">here</a>.</p>
-<p>You can ask report errors or for additional analysis <a href="https://github.com/TB-DURATION/mice/issues">here</a>.</p>
+<p>All the data and source code files are <a href="https://github.com/TB-DURATION/tpt-model">here</a>.</p>
+<p>You can ask report errors or for additional analysis <a href="https://github.com/TB-DURATION/tpt-model/issues">here</a>.</p>
 <section id="introduction" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1</span> Introduction</h2>
 </section>
 <section id="packages" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="packages"><span class="header-section-number">2</span> Packages</h2>
-<p>Required: <code>deSolve</code>, <code>tibble</code></p>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-1_1a990245ac2fc76828fa4ecc6ef6b812">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Required: <code>deSolve</code>, <code>tibble</code>, <code>purrr</code></p>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-1_8b05d565298524fc9bb298b14f5e5316">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(magrittr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="utilitary-functions" class="level2" data-number="3">
@@ -161,14 +144,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>legend2 <span class="ot">&lt;-</span> <span class="cf">function</span>(...) <span class="fu">legend</span>(..., <span class="at">bty =</span> <span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="sid-model" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="sid-model"><span class="header-section-number">4</span> <span class="math inline">\(SID\)</span> model</h2>
+<section id="epidemiological-models" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="epidemiological-models"><span class="header-section-number">4</span> Epidemiological models</h2>
+<section id="sid-model" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="sid-model"><span class="header-section-number">4.1</span> <span class="math inline">\(SID\)</span> model</h3>
 <p>The simplest model we could imagine is a model with only 3 variables: those not infected, those infected but not infectious, and those infected, sick and infectious. This model contains human demography but the total population size is kept constant (i.e.&nbsp;birth and death rates are equal). It also contains:</p>
 <ul>
-<li>clearance from both infected (natural or through prophylaxis) and diseased (natural or through curative treatment)</li>
-<li>curation can be with or without sterilization</li>
-<li>relapse (following recovery without clearance)</li>
-<li>mortality from diseased</li>
+<li>clearance from infected, from natural immunity of through prophylactic treatment</li>
+<li>recovery from disease, with and without clearance, from natural immunity or through curative treatment</li>
+<li>possibility of relapse (following recovery without clearance)</li>
+<li>mortality from disease</li>
 </ul>
 <div id="fig-model-diagram" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -176,8 +161,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <figcaption class="figure-caption">Figure&nbsp;1: Flow diagram of the SID epidemiological model.</figcaption>
 </figure>
 </div>
-<section id="variables" class="level3" data-number="4.1">
-<h3 data-number="4.1" class="anchored" data-anchor-id="variables"><span class="header-section-number">4.1</span> Variables</h3>
+<section id="variables" class="level4" data-number="4.1.1">
+<h4 data-number="4.1.1" class="anchored" data-anchor-id="variables"><span class="header-section-number">4.1.1</span> Variables</h4>
 <ul>
 <li><span class="math inline">\(S\)</span>: non-infected</li>
 <li><span class="math inline">\(I\)</span>: infected (and not infectious)</li>
@@ -185,33 +170,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <p>Note that <span class="math inline">\(S + I + D = N\)</span> where <span class="math inline">\(N\)</span> is a constant.</p>
 </section>
-<section id="parameters" class="level3" data-number="4.2">
-<h3 data-number="4.2" class="anchored" data-anchor-id="parameters"><span class="header-section-number">4.2</span> Parameters</h3>
+<section id="parameters" class="level4" data-number="4.1.2">
+<h4 data-number="4.1.2" class="anchored" data-anchor-id="parameters"><span class="header-section-number">4.1.2</span> Parameters</h4>
 <ul>
 <li><span class="math inline">\(\beta\)</span>: infectious contact rate (/ind)</li>
-<li><span class="math inline">\(\sigma\)</span>: clearance rate of <span class="math inline">\(I\)</span>, either through natural immunity or prophylactic treatment</li>
-<li><span class="math inline">\(\delta\)</span>: progression rates of infection to disease</li>
-<li><span class="math inline">\(\rho\)</span>: rate of recovery without clearance (ultimately leading to relapse)</li>
-<li><span class="math inline">\(\gamma\)</span>: rate of recovery with clearance either from treatment or natural immunity</li>
-<li><span class="math inline">\(q\)</span>: probability that curation comes with sterilization</li>
-<li><span class="math inline">\(\mu\)</span>: demographic turn-over rate (<em>i.e.</em> birth and death rates equal, see assumption on constant population size)</li>
-<li><span class="math inline">\(\alpha\)</span>: death rate due to TB</li>
+<li><span class="math inline">\(\delta\)</span>: progression rate of infection to disease</li>
+<li><span class="math inline">\(\sigma\)</span>: clearance rate of infected through natural immunity</li>
+<li><span class="math inline">\(\pi\)</span>: clearance rate of infected through prophylactic treatment</li>
+<li><span class="math inline">\(\gamma\)</span>: rate of disease recovery from natural immunity</li>
+<li><span class="math inline">\(p\)</span>: probability that disease recovery from natural immunity comes with clearance</li>
+<li><span class="math inline">\(\tau\)</span>: rate of disease recovery from curative treatment</li>
+<li><span class="math inline">\(q\)</span>: probability that disease recovery from curative treatment comes with clearance</li>
+<li><span class="math inline">\(\alpha\)</span>: death rate due to disease</li>
+<li><span class="math inline">\(\mu\)</span>: natural birth and death rates</li>
 </ul>
 </section>
-<section id="dynamics" class="level3" data-number="4.3">
-<h3 data-number="4.3" class="anchored" data-anchor-id="dynamics"><span class="header-section-number">4.3</span> Dynamics</h3>
+<section id="dynamics" class="level4" data-number="4.1.3">
+<h4 data-number="4.1.3" class="anchored" data-anchor-id="dynamics"><span class="header-section-number">4.1.3</span> Dynamics</h4>
 <p>Differential equations</p>
 <p><span class="math display">\[
 \begin{align}
-  \frac{dS}{dt}   &amp;= \mu N + (\sigma + \pi) I + (\alpha + q\gamma) D - (\beta D + \mu) S         \\
-  \frac{dI}{dt}   &amp;= \beta D S + (\rho + [1 - q] \gamma) D                     - (\sigma + \pi + \delta + \mu) I \\
-  \frac{dD}{dt}   &amp;= \delta I                               - (\alpha + \gamma + \rho + \mu) D
+  \frac{dS}{dt}   &amp;= (\sigma + \mu + \tau) I +
+                     (p \gamma + q \tau + \alpha + \mu) D - \beta D S                 \\
+  \frac{dI}{dt}   &amp;= \beta D S + ([1 - p] \gamma + [1 - q] \tau) D -
+                     (\delta + \sigma + \mu + \tau) I                                 \\
+  \frac{dD}{dt}   &amp;= \delta I - (\gamma + \tau + \alpha + \mu) D
 \end{align}
 \]</span></p>
 <p>R code:</p>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-7_f75f881103ded9884676d54554d5b000">
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-7_5dff6b9a74b88f5ba2079555a7613d68">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sid <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    S0, I0, D0, beta, sigma, delta, gamma, q, rho, mu, alpha, pi, times) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    S0, I0, D0, beta, delta, sigma, pi, gamma, p, tau, q, alpha, mu, times) {</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> S0 <span class="sc">+</span> I0 <span class="sc">+</span> D0</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  </span>
@@ -220,365 +209,154 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>       <span class="cf">function</span>(time, state, pars) {</span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>         <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(state, pars)), {</span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>           foi <span class="ot">&lt;-</span> beta <span class="sc">*</span> D <span class="sc">*</span> S</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>           dS  <span class="ot">&lt;-</span> mu <span class="sc">*</span> (N <span class="sc">-</span> S) <span class="sc">+</span> (sigma <span class="sc">+</span> pi) <span class="sc">*</span> I <span class="sc">+</span> (alpha <span class="sc">+</span> q <span class="sc">*</span> gamma) <span class="sc">*</span> D <span class="sc">-</span> foi</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>           dI  <span class="ot">&lt;-</span> foi <span class="sc">+</span> (rho <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> q) <span class="sc">*</span> gamma) <span class="sc">*</span> D <span class="sc">-</span> (sigma <span class="sc">+</span> pi <span class="sc">+</span> delta <span class="sc">+</span> mu) <span class="sc">*</span> I</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>           dD  <span class="ot">&lt;-</span> delta <span class="sc">*</span> I <span class="sc">-</span> (alpha <span class="sc">+</span> gamma <span class="sc">+</span> rho <span class="sc">+</span> mu) <span class="sc">*</span> D</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>           <span class="fu">list</span>(<span class="fu">c</span>(dS, dI, dD))</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>         })</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>       },</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="at">beta =</span> beta, <span class="at">sigma =</span> sigma, <span class="at">delta =</span> delta, <span class="at">gamma =</span> gamma, <span class="at">q =</span> q, <span class="at">rho =</span> rho,</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha, <span class="at">pi =</span> pi))</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>           dS  <span class="ot">&lt;-</span> (sigma <span class="sc">+</span> mu <span class="sc">+</span> tau) <span class="sc">*</span> I <span class="sc">+</span> (p <span class="sc">*</span> gamma <span class="sc">+</span> q <span class="sc">*</span> tau <span class="sc">+</span> alpha <span class="sc">+</span> mu) <span class="sc">*</span> D <span class="sc">-</span> foi</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>           dI  <span class="ot">&lt;-</span> foi <span class="sc">+</span> ((<span class="dv">1</span> <span class="sc">-</span> p) <span class="sc">*</span> gamma <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> q) <span class="sc">*</span> tau) <span class="sc">*</span> D <span class="sc">-</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                  (delta <span class="sc">+</span> sigma <span class="sc">+</span> mu <span class="sc">+</span> tau) <span class="sc">*</span> I</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>           dD  <span class="ot">&lt;-</span> delta <span class="sc">*</span> I <span class="sc">-</span> (gamma <span class="sc">+</span> tau <span class="sc">+</span> alpha <span class="sc">+</span> mu) <span class="sc">*</span> D</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>           <span class="fu">list</span>(<span class="fu">c</span>(dS, dI, dD))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>         })</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>       },</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="at">beta =</span> beta, <span class="at">delta =</span> delta, <span class="at">sigma =</span> sigma, <span class="at">pi =</span> pi, <span class="at">gamma =</span> gamma, <span class="at">p =</span> p,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">tau =</span> tau, <span class="at">q =</span> q, <span class="at">alpha =</span> alpha, <span class="at">mu =</span> mu))</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-8_238de154e7c4ceb4e801a13a4aa263d7">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sid <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    S0, I0, D0, beta, sigma, delta, gamma, q, rho, mu, alpha, pi, times) {</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> S0 <span class="sc">+</span> I0 <span class="sc">+</span> D0</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ode2</span>(<span class="fu">c</span>(<span class="at">S =</span> S0, <span class="at">I =</span> I0, <span class="at">D =</span> D0),</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>       times,</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>       <span class="cf">function</span>(time, state, pars) {</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>         <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(state, pars)), {</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>           foi <span class="ot">&lt;-</span> beta <span class="sc">*</span> D <span class="sc">*</span> S</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>           dS  <span class="ot">&lt;-</span> mu <span class="sc">*</span> (N <span class="sc">-</span> S) <span class="sc">+</span> (sigma <span class="sc">+</span> pi) <span class="sc">*</span> I <span class="sc">+</span> (alpha <span class="sc">+</span> q <span class="sc">*</span> gamma) <span class="sc">*</span> D <span class="sc">-</span> foi</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>           dI  <span class="ot">&lt;-</span> foi <span class="sc">+</span> (rho <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> q) <span class="sc">*</span> gamma) <span class="sc">*</span> D <span class="sc">-</span> (sigma <span class="sc">+</span> pi <span class="sc">+</span> delta <span class="sc">+</span> mu) <span class="sc">*</span> I</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>           dD  <span class="ot">&lt;-</span> delta <span class="sc">*</span> I <span class="sc">-</span> (alpha <span class="sc">+</span> gamma <span class="sc">+</span> rho <span class="sc">+</span> mu) <span class="sc">*</span> D</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>           <span class="fu">list</span>(<span class="fu">c</span>(dS, dI, dD))</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>         })</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>       },</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="at">beta =</span> beta, <span class="at">sigma =</span> sigma, <span class="at">delta =</span> delta, <span class="at">gamma =</span> gamma, <span class="at">q =</span> q, <span class="at">rho =</span> rho,</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha, <span class="at">pi =</span> pi))</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-9_5e7797c018f424eed2b8887605a9438e">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sid_sim <span class="ot">&lt;-</span> <span class="fu">sid</span>(<span class="at">S0    =</span> <span class="fl">1e5</span> <span class="sc">-</span> <span class="dv">350</span>,</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">I0    =</span> <span class="dv">0</span>,</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">D0    =</span> <span class="dv">350</span>,</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">beta  =</span> .<span class="dv">00001</span>,</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">sigma =</span> <span class="dv">0</span>, <span class="co">#.1,</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">delta =</span> .<span class="dv">04</span>,</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">gamma =</span> <span class="dv">1</span>,</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">q     =</span> .<span class="dv">1</span>,</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>               <span class="at">rho   =</span> <span class="dv">0</span>,</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">mu    =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">70</span>,</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">alpha =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">3</span>,</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">pi    =</span> <span class="dv">0</span>,</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>               <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">10000</span>))</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>opar <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(sid_sim, {</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, I, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"time (year)"</span>, <span class="at">ylab =</span> <span class="st">"infection prevalence"</span>)</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, D, <span class="at">col =</span> <span class="dv">3</span>, <span class="at">xlab =</span> <span class="st">"time (year)"</span>, <span class="at">ylab =</span> <span class="st">"disease prevalence"</span>)</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, .<span class="dv">04</span> <span class="sc">*</span> I, <span class="at">col =</span> <span class="dv">4</span>, <span class="at">xlab =</span> <span class="st">"time (year)"</span>, <span class="at">ylab =</span> <span class="st">"yearly disease incidence"</span>)</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Let’s run an example:</p>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-8_840f042bf60c82844d7bdac3f9c71979">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>delta <span class="ot">&lt;-</span> .<span class="dv">01</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sid_sim <span class="ot">&lt;-</span> <span class="fu">sid</span>(<span class="at">S0    =</span> <span class="fl">1e5</span> <span class="sc">-</span> <span class="dv">350</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">I0    =</span> <span class="dv">0</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">D0    =</span> <span class="dv">350</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">beta  =</span> .<span class="dv">00001</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">delta =</span> delta,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">sigma =</span> <span class="dv">0</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">pi    =</span> <span class="dv">0</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>               <span class="at">gamma =</span> <span class="dv">0</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">p     =</span> .<span class="dv">1</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">tau   =</span> <span class="dv">0</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">q     =</span> .<span class="dv">1</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>               <span class="at">alpha =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">3</span>,</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">mu    =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">70</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>               <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">10000</span>))</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>opar <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(sid_sim, {</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, I, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"time (year)"</span>, <span class="at">ylab =</span> <span class="st">"infection prevalence"</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, D, <span class="at">col =</span> <span class="dv">3</span>, <span class="at">xlab =</span> <span class="st">"time (year)"</span>, <span class="at">ylab =</span> <span class="st">"disease prevalence"</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, delta <span class="sc">*</span> I, <span class="at">col =</span> <span class="dv">4</span>, <span class="at">xlab =</span> <span class="st">"time (year)"</span>, <span class="at">ylab =</span> <span class="st">"yearly disease incidence"</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="tpt_model_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="tpt_model_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(opar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(opar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="calibration" class="level3" data-number="4.4">
-<h3 data-number="4.4" class="anchored" data-anchor-id="calibration"><span class="header-section-number">4.4</span> Calibration</h3>
+</section>
+<section id="calibration" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="calibration"><span class="header-section-number">4.2</span> Calibration</h3>
 <ul>
 <li>infection prevalence: somewhere between 10 and 30% of the population</li>
 <li>disease prevalence: somewhere between 50 and 500 / 100,000</li>
-<li>disease incidence:</li>
+<li>disease incidence: close to disease prevalence</li>
 </ul>
-</section>
-</section>
-<section id="si_ai_dd-model" class="level2" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="si_ai_dd-model"><span class="header-section-number">5</span> <span class="math inline">\(SI_aI_dD\)</span> model</h2>
-<p>Compared to the <span class="math inline">\(SID\)</span> model, the <span class="math inline">\(SI_aI_dD\)</span> model separates the infected who will ultimately develop the disease (<span class="math inline">\(I_d\)</span>) with probability <span class="math inline">\(p\)</span> from those who will not (<span class="math inline">\(I_a\)</span>). The later can spontaneously clear the bacillus.</p>
-<div id="fig-model-diagram" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="SIaIdD.png" class="img-fluid figure-img" width="450"></p>
-<figcaption class="figure-caption">Figure&nbsp;2: Flow diagram of the <span class="math inline">\(SI_aI_dD\)</span> epidemiological model.</figcaption>
-</figure>
+<p>A function that looks for the endemic equilibrium:</p>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-9_b7b402adb35d1534dc3b02afc543edb0">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>equilibrium <span class="ot">&lt;-</span> <span class="cf">function</span>(f, args, <span class="at">p =</span> .<span class="dv">1</span>, <span class="at">eps =</span> <span class="fl">1e-2</span>) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  sims <span class="ot">&lt;-</span> <span class="fu">do.call</span>(f, args)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  nr <span class="ot">&lt;-</span> <span class="fu">nrow</span>(sims)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  from <span class="ot">&lt;-</span> nr <span class="sc">-</span> <span class="fu">round</span>(p <span class="sc">*</span> nr)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  final <span class="ot">&lt;-</span> sims[(nr <span class="sc">-</span> <span class="fu">round</span>(p <span class="sc">*</span> nr)) <span class="sc">:</span> nr, <span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  final_val <span class="ot">&lt;-</span> <span class="fu">tail</span>(final, <span class="dv">1</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> (<span class="fu">max</span>(<span class="fu">map_dbl</span>(final, <span class="sc">~</span> <span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">diff</span>(.x))))) <span class="sc">&gt;</span> eps) {</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    final_val <span class="ot">&lt;-</span> <span class="fu">tail</span>(final, <span class="dv">1</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    args[<span class="fu">paste0</span>(<span class="fu">names</span>(final_val), <span class="st">"0"</span>)] <span class="ot">&lt;-</span> final_val</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    sims <span class="ot">&lt;-</span> <span class="fu">do.call</span>(f, args)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    final <span class="ot">&lt;-</span> sims[from <span class="sc">:</span> nr, <span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>(final_val)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="variables-1" class="level3" data-number="5.1">
-<h3 data-number="5.1" class="anchored" data-anchor-id="variables-1"><span class="header-section-number">5.1</span> Variables</h3>
-<ul>
-<li><span class="math inline">\(S\)</span>: non-infected</li>
-<li><span class="math inline">\(I_a\)</span>: infected (and not infectious) and that will never become infectious</li>
-<li><span class="math inline">\(I_d\)</span>: infected (and not infectious) and that ultimately become infectious</li>
-<li><span class="math inline">\(D\)</span>: sick and infectious</li>
-<li><span class="math inline">\(N = S + I_a + I_d + D\)</span></li>
-</ul>
-</section>
-<section id="parameters-1" class="level3" data-number="5.2">
-<h3 data-number="5.2" class="anchored" data-anchor-id="parameters-1"><span class="header-section-number">5.2</span> Parameters</h3>
-<ul>
-<li><span class="math inline">\(\beta\)</span>: infectious contact rate (/ind)</li>
-<li><span class="math inline">\(p\)</span>: proportion of infected that will ultimately become infectious</li>
-<li><span class="math inline">\(\sigma\)</span>: clearance rate of <span class="math inline">\(I\)</span>, either through natural immunity or prophylactic treatment</li>
-<li><span class="math inline">\(\delta\)</span>: progression rates of infection to disease</li>
-<li><span class="math inline">\(\rho\)</span>: rate of recovery without clearance (ultimately leading to relapse)</li>
-<li><span class="math inline">\(\gamma\)</span>: rate of recovery with clearance either from treatment or natural immunity</li>
-<li><span class="math inline">\(\mu\)</span>: demographic turn-over rate (<em>i.e.</em> birth and death rates equal, see assumption on constant population size)</li>
-<li><span class="math inline">\(\alpha\)</span>: death rate due to TB</li>
-</ul>
-</section>
-<section id="dynamics-1" class="level3" data-number="5.3">
-<h3 data-number="5.3" class="anchored" data-anchor-id="dynamics-1"><span class="header-section-number">5.3</span> Dynamics</h3>
-<p>Differential equations:</p>
-<p><span class="math display">\[
-\begin{align}
-  \frac{dS}{dt}   &amp;= \mu N + \sigma I_a + (\alpha + \gamma) D - (\beta D + \mu) S     \\
-  \frac{dI_a}{dt} &amp;= (1 - p) \beta D S                        - (\sigma + \mu) I_a    \\
-  \frac{dI_d}{dt} &amp;= p \beta D S + \rho D                     - (\delta + \mu) I_d    \\
-  \frac{dD}{dt}   &amp;= \delta I_d                               - (\alpha + \gamma + \rho + \mu) D
-\end{align}
-\]</span></p>
-<p>R code:</p>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-10_51daeac47b11f99fe1cd01573c0d8126">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sid_mod <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    S0, I0, D0,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    beta, sigma, delta, gamma, rho, mu, alpha, times) {</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> S0 <span class="sc">+</span> I0 <span class="sc">+</span> D0</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ode2</span>(<span class="fu">c</span>(<span class="at">S =</span> S0, <span class="at">I =</span> I0, <span class="at">D =</span> D0),</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>       times,</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>       <span class="cf">function</span>(time, state, pars) {</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>         <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(state, pars)), {</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>           foi <span class="ot">&lt;-</span> beta <span class="sc">*</span> D <span class="sc">*</span> S</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>           dS  <span class="ot">&lt;-</span> mu <span class="sc">*</span> (N <span class="sc">-</span> S) <span class="sc">+</span> sigma <span class="sc">*</span> I <span class="sc">+</span> (alpha <span class="sc">+</span> gamma) <span class="sc">*</span> D <span class="sc">-</span> foi</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>           dI  <span class="ot">&lt;-</span> foi <span class="sc">+</span> rho <span class="sc">*</span> D <span class="sc">-</span> (mu <span class="sc">+</span> sigma <span class="sc">+</span> delta) <span class="sc">*</span> I</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>           dD  <span class="ot">&lt;-</span> delta <span class="sc">*</span> I <span class="sc">-</span> (mu <span class="sc">+</span> alpha <span class="sc">+</span> gamma <span class="sc">+</span> rho) <span class="sc">*</span> D</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>           <span class="fu">list</span>(<span class="fu">c</span>(dS, dI, dD))</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>         })</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>       },</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="at">beta =</span> beta, <span class="at">gamma =</span> gamma, <span class="at">rho =</span> rho, <span class="at">sigma =</span> sigma,</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">delta =</span> delta, <span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha))</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Let’s try it:</p>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-10_d5caf900c81d1b3b57830bcff3cc485e">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>args <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">S0    =</span> <span class="fl">1e5</span> <span class="sc">-</span> <span class="dv">350</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">I0    =</span> <span class="dv">0</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">D0    =</span> <span class="dv">350</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">beta  =</span> .<span class="dv">00001</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">delta =</span> .<span class="dv">01</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma =</span> <span class="dv">0</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">pi    =</span> <span class="dv">0</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">gamma =</span> <span class="dv">0</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">p     =</span> .<span class="dv">1</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">tau   =</span> <span class="dv">0</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">q     =</span> .<span class="dv">1</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">3</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">mu    =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">70</span>,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">10000</span>))</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">equilibrium</span>(sid, args)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co"># per 100,000:</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(out, <span class="at">yearly_disease_incidence =</span> args<span class="sc">$</span>delta <span class="sc">*</span> <span class="fu">unname</span>(out[<span class="st">"I"</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                       S                        I                        D 
+              84421.7687               15142.6216                 435.6097 
+yearly_disease_incidence 
+                151.4262 </code></pre>
 </div>
-</section>
-<section id="equilibrium" class="level3" data-number="5.4">
-<h3 data-number="5.4" class="anchored" data-anchor-id="equilibrium"><span class="header-section-number">5.4</span> Equilibrium</h3>
-<p>Equations:</p>
-<p><span class="math display">\[
-\begin{align}
-  S^*   &amp;= N - I_a^* - I_d^* - D^*                                                      \\
-  I_a^* &amp;= \frac{(N - I_d^* - D^*) (1 - p) \beta D^*}{(1 - p) \beta D^* + \sigma + \mu} \\
-  I_d^* &amp;= \frac{\alpha + \gamma + \rho + \mu}{\delta} D^*                              \\
-  D^*   &amp;= \frac{p \beta \delta N - (\alpha + \gamma) (\delta + \mu) - (\gamma + \delta + \rho + \mu) \mu}
-                {(\alpha + \gamma) [(1 - p) \delta + p \sigma + \mu] + (p \sigma + \mu) (\delta + \rho + \mu)}
-           \frac{\sigma + \mu}{\beta}
-\end{align}
-\]</span></p>
-<p>R code:</p>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-11_2e4a6103ff6a123edb9edc82877bb66f">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>sid_equ <span class="ot">&lt;-</span> <span class="cf">function</span>(N, beta, sigma, delta, gamma, rho, mu, alpha) {</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  Dstar <span class="ot">&lt;-</span> (beta <span class="sc">*</span> delta <span class="sc">*</span> N <span class="sc">-</span> (delta <span class="sc">+</span> mu <span class="sc">+</span> rho) <span class="sc">*</span> mu <span class="sc">-</span> (mu <span class="sc">+</span> rho) <span class="sc">*</span> sigma <span class="sc">-</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>              (delta <span class="sc">+</span> mu <span class="sc">+</span> sigma) <span class="sc">*</span> (alpha <span class="sc">+</span> gamma)) <span class="sc">/</span> </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    (beta <span class="sc">*</span> (alpha <span class="sc">+</span> gamma <span class="sc">+</span> delta <span class="sc">+</span> mu <span class="sc">+</span> rho))</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  Istar <span class="ot">&lt;-</span> (mu <span class="sc">+</span> alpha <span class="sc">+</span> gamma <span class="sc">+</span> rho) <span class="sc">*</span> Dstar <span class="sc">/</span> delta</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="at">Sstar =</span> N <span class="sc">-</span> Istar <span class="sc">-</span> Dstar,</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Istar =</span> Istar,</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Dstar =</span> Dstar)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="numerical-verification" class="level3" data-number="5.5">
-<h3 data-number="5.5" class="anchored" data-anchor-id="numerical-verification"><span class="header-section-number">5.5</span> Numerical verification</h3>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-12_33d9f62095584660d44ce3bc13e9693e">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pvlc <span class="ot">&lt;-</span> <span class="dv">350</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>sid_mod_sim <span class="ot">&lt;-</span> <span class="fu">sid_mod</span>(</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">S0 =</span> <span class="fl">1e5</span> <span class="sc">-</span> pvlc,</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">I0 =</span> <span class="dv">0</span>,</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">D0 =</span> pvlc,</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">beta =</span> <span class="fl">1.2e-5</span>,</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma =</span> <span class="dv">0</span>, <span class="co">#.1,</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta =</span> <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">-</span> .<span class="dv">9</span>) <span class="sc">/</span> <span class="dv">2</span>,</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fl">1.5</span>,</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">rho =</span> <span class="dv">0</span>, <span class="co">#.15,</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">70</span>,</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> .<span class="dv">3</span>,</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">100</span>)</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>sid_equ_val <span class="ot">&lt;-</span> <span class="fu">sid_equ</span>(</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">N =</span> <span class="fl">1e5</span>,</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">beta =</span> <span class="fl">1.2e-5</span>,</span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma =</span> <span class="dv">0</span>, <span class="co">#.1,</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta =</span> <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">-</span> .<span class="dv">9</span>) <span class="sc">/</span> <span class="dv">2</span>,</span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fl">1.5</span>,</span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">rho =</span> <span class="dv">0</span>, <span class="co">#.15,</span></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">70</span>,</span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> .<span class="dv">3</span></span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(sid_mod_sim, {</span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, D, <span class="at">col =</span> <span class="dv">3</span>, <span class="at">xlab =</span> <span class="st">"time (year)"</span>, <span class="at">ylab =</span> <span class="st">"number of individuals"</span>)</span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(time, I, <span class="at">col =</span> <span class="dv">4</span>)</span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> sid_equ_val[<span class="fu">c</span>(<span class="st">"Dstar"</span>, <span class="st">"Istar"</span>)], <span class="at">col =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>))</span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="fu">legend2</span>(<span class="st">"bottomright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"infected"</span>, <span class="st">"diseased"</span>), <span class="at">col =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>ABC:</p>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-11_af2e85865babc5739b7a180047019830">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>abc <span class="ot">&lt;-</span> <span class="cf">function</span>(f, args, icdnc, target, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">p =</span> .<span class="dv">1</span>, <span class="at">eps =</span> <span class="fl">1e-2</span>) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  idx <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">map_int</span>(args, length) <span class="sc">==</span> <span class="dv">2</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  get_eq <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    args[idx] <span class="ot">&lt;-</span> x</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    out <span class="ot">&lt;-</span> <span class="fu">equilibrium</span>(f, args)[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(out, <span class="fu">icdnc</span>(out, args))</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  vls <span class="ot">&lt;-</span> args[idx] <span class="sc">%&gt;%</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map_df</span>(<span class="sc">~</span> <span class="fu">runif</span>(n, .x[<span class="dv">1</span>], .x[<span class="dv">2</span>])) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>()</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  vls <span class="sc">%&gt;%</span> </span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(get_eq) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map_lgl</span>(<span class="sc">~</span> <span class="fu">all</span>(.x <span class="sc">&gt;</span> <span class="fu">map</span>(target, first) <span class="sc">&amp;</span> .x <span class="sc">&lt;</span> <span class="fu">map</span>(target, last))) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">extract</span>(vls, .) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>()</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s try it:</p>
+<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-12_ca1e841aa18d627e9c4ae7f5b2c8e5a1">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>args <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">S0    =</span> <span class="fl">1e5</span> <span class="sc">-</span> <span class="dv">350</span>,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">I0    =</span> <span class="dv">0</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">D0    =</span> <span class="dv">350</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">beta  =</span> <span class="fu">c</span>(.<span class="dv">000005</span>, .<span class="dv">000015</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">delta =</span> <span class="fu">c</span>(.<span class="dv">005</span>, .<span class="dv">015</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma =</span> <span class="dv">0</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">pi    =</span> <span class="dv">0</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">gamma =</span> <span class="dv">0</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">p     =</span> .<span class="dv">1</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">tau   =</span> <span class="dv">0</span>,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">q     =</span> .<span class="dv">1</span>,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">3</span>,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">mu    =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">70</span>,</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">10000</span>))</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">abc</span>(sid, args, <span class="cf">function</span>(x, y) y<span class="sc">$</span>delta <span class="sc">*</span> x[<span class="st">"I"</span>],</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">5000</span>, <span class="dv">35000</span>), <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">500</span>), <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">500</span>)), <span class="dv">1000</span>)</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(out, <span class="fu">plot</span>(beta, delta))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="tpt_model_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="epidemiological-model" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="epidemiological-model"><span class="header-section-number">6</span> Epidemiological model</h2>
-<section id="assumptions" class="level3" data-number="6.1">
-<h3 data-number="6.1" class="anchored" data-anchor-id="assumptions"><span class="header-section-number">6.1</span> Assumptions</h3>
-<ul>
-<li>Constant population size</li>
-<li>No population structure other than clinical status</li>
-</ul>
-</section>
-<section id="variables-2" class="level3" data-number="6.2">
-<h3 data-number="6.2" class="anchored" data-anchor-id="variables-2"><span class="header-section-number">6.2</span> Variables</h3>
-<ul>
-<li><span class="math inline">\(S\)</span>: non-infected</li>
-<li><span class="math inline">\(I_1\)</span>: recently infected</li>
-<li><span class="math inline">\(I_2\)</span>: infected a long time ago</li>
-<li><span class="math inline">\(I_3\)</span>: treated but not sterilized</li>
-<li><span class="math inline">\(D\)</span>: sick and infectious (we do not discriminate PTB from EPTB)</li>
-<li><span class="math inline">\(N = S + I_1 + I_2 + I_3 + D\)</span></li>
-</ul>
-<p><strong>Note:</strong> only <span class="math inline">\(D\)</span> are infectious.</p>
-</section>
-<section id="parameters-2" class="level3" data-number="6.3">
-<h3 data-number="6.3" class="anchored" data-anchor-id="parameters-2"><span class="header-section-number">6.3</span> Parameters</h3>
-<ul>
-<li><span class="math inline">\(\beta\)</span>: infectious contact rate (/ind)</li>
-<li><span class="math inline">\(\sigma_1\)</span> and <span class="math inline">\(\sigma_2\)</span>: clearance rates of <span class="math inline">\(I_1\)</span> and <span class="math inline">\(I_2\)</span> respectively, either through natural immunity or prophylactic treatment</li>
-<li><span class="math inline">\(\delta_1\)</span>, <span class="math inline">\(\delta_2\)</span> and <span class="math inline">\(\delta_3\)</span>: progression rates of infection to disease for <span class="math inline">\(I_1\)</span>, <span class="math inline">\(I_2\)</span> and <span class="math inline">\(I_3\)</span> (relapse) respectively</li>
-<li><span class="math inline">\(\gamma\)</span>: rate of recovery with clearance either from treatment or natural immunity</li>
-<li><span class="math inline">\(\rho\)</span>: rate of recovery without clearance (ultimately leading to relapse)</li>
-<li><span class="math inline">\(\tau\)</span>: rate at which infected transit from a status of recent infection to a status of non-recent infection</li>
-<li><span class="math inline">\(\mu\)</span>: demographic turn-over rate (<em>i.e.</em> birth and death rates equal, see assumption on constant population size)</li>
-<li><span class="math inline">\(\alpha\)</span>: death rate due to TB</li>
-</ul>
-<p><strong>Note:</strong> all these rates are <em>per year</em> and <em>per capita</em>.</p>
-</section>
-<section id="flow-diagram" class="level3" data-number="6.4">
-<h3 data-number="6.4" class="anchored" data-anchor-id="flow-diagram"><span class="header-section-number">6.4</span> Flow diagram</h3>
-<div id="fig-model-diagram" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="SI1I2I3D.png" class="img-fluid figure-img" width="450"></p>
-<figcaption class="figure-caption">Figure&nbsp;3: Flow diagram of the epidemiological model.</figcaption>
-</figure>
-</div>
-</section>
-<section id="differential-equations" class="level3" data-number="6.5">
-<h3 data-number="6.5" class="anchored" data-anchor-id="differential-equations"><span class="header-section-number">6.5</span> Differential equations</h3>
-<p><span class="math display">\[
-\begin{align}
-  \frac{dS}{dt}   &amp;= \mu N + \sigma_1 I_1 + \sigma_2 I_2 + \gamma D -
-     \left(\mu + \beta \frac{D}{N} \right) S                                          \\
-  \frac{dI_1}{dt} &amp;= \beta \frac{D}{N} S - (\mu + \sigma_1 + \delta_1 + \tau) I_1     \\
-  \frac{dI_2}{dt} &amp;= \tau I_1 - (\mu + \delta_2 + \sigma_2) I_2                       \\
-  \frac{dI_3}{dt} &amp;= \rho D - (\mu + \delta_3) I_3                                    \\
-  \frac{dD}{dt}   &amp;= \delta_1 I_1 + \delta_2 I_2 + \delta_3 I_3 -
-     (\mu + \alpha + \gamma + \rho) D
-\end{align}
-\]</span></p>
-</section>
-<section id="r-code" class="level3" data-number="6.6">
-<h3 data-number="6.6" class="anchored" data-anchor-id="r-code"><span class="header-section-number">6.6</span> R code</h3>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-13_89504e1336d7f08f1e1f197f2aea436d">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>epi_dynamics <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    S0, I10, I20, I30, D0,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    beta, sigma1, sigma2, delta1, delta2, delta3, gamma, tau, rho, mu, alpha, times) {</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> S0 <span class="sc">+</span> I10 <span class="sc">+</span> I20 <span class="sc">+</span> I30 <span class="sc">+</span> D0</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ode2</span>(<span class="fu">c</span>(<span class="at">S =</span> S0, <span class="at">I1 =</span> I10, <span class="at">I2 =</span> I20, <span class="at">I3 =</span> I30, <span class="at">D =</span> D0),</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>       times,</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>       <span class="cf">function</span>(time, state, pars) {</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>         <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(state, pars)), {</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>           foi <span class="ot">&lt;-</span> beta <span class="sc">*</span> D <span class="sc">*</span> S <span class="sc">/</span> N</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>           dS  <span class="ot">&lt;-</span> mu <span class="sc">*</span> (N <span class="sc">-</span> S) <span class="sc">+</span> sigma1 <span class="sc">*</span> I1 <span class="sc">+</span> sigma2 <span class="sc">*</span> I2 <span class="sc">+</span> gamma <span class="sc">*</span> D <span class="sc">-</span> foi</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>           dI1 <span class="ot">&lt;-</span> foi <span class="sc">-</span> (mu <span class="sc">+</span> sigma1 <span class="sc">+</span> delta1 <span class="sc">+</span> tau) <span class="sc">*</span> I1</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>           dI2 <span class="ot">&lt;-</span> tau <span class="sc">*</span> I1 <span class="sc">-</span> (mu <span class="sc">+</span> delta2 <span class="sc">+</span> sigma2) <span class="sc">*</span> I2</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>           dI3 <span class="ot">&lt;-</span> rho <span class="sc">*</span> D <span class="sc">-</span> (mu <span class="sc">+</span> delta3) <span class="sc">*</span> I3</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>           dD  <span class="ot">&lt;-</span> delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2 <span class="sc">+</span> delta3 <span class="sc">*</span> I3 <span class="sc">-</span> (mu <span class="sc">+</span> alpha <span class="sc">+</span> gamma <span class="sc">+</span> rho) <span class="sc">*</span> D</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>           <span class="fu">list</span>(<span class="fu">c</span>(dS, dI1, dI2, dI3, dD))</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>         })</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>       },</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="at">beta =</span> beta, <span class="at">gamma =</span> gamma, <span class="at">rho =</span> rho,</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">sigma1 =</span> sigma1, <span class="at">sigma2 =</span> sigma2,</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">delta1 =</span> delta1, <span class="at">delta2 =</span> delta2, <span class="at">delta3 =</span> delta3,</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha))</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="tb-data" class="level3" data-number="6.7">
-<h3 data-number="6.7" class="anchored" data-anchor-id="tb-data"><span class="header-section-number">6.7</span> TB data</h3>
-<ul>
-<li>infection prevalence: 322 (95% CI: 260–399) TB cases/100,000 adults (<a href="https://doi.org/10.1371/journal.pone.0232142">Nguyen <em>et al.</em> PLoS ONE 2020</a>)</li>
-<li>5-10% of those infected develop TB in their lifetime</li>
-<li>among those who develop disease, about 90% do so within 2 years</li>
-<li>125,000 new TB cases in Vietnam in 2018</li>
-</ul>
-<p>If <span class="math inline">\(p\%\)</span> of those who develop disease (to <span class="math inline">\(D\)</span>) do so within <span class="math inline">\(E\)</span> years, then the <span class="math inline">\(\tau\)</span> rate should read:</p>
-<p><span class="math display">\[
-\tau \simeq -\frac{\ln(1 - p)}{E}
-\]</span></p>
-<p>If <span class="math inline">\(q%\)</span> of those infected develop TB in their lifetime, then</p>
-<p><span class="math display">\[
-\delta_1 = \delta_2 \simeq \frac{q}{1 - q} \mu
-\]</span></p>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-14_d7218b781876d1b3fa7ca7d1a8941e66">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>prevalence <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>mu_val <span class="ot">&lt;-</span> .<span class="dv">02</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> .<span class="dv">1</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>delta <span class="ot">&lt;-</span> mu_val <span class="sc">*</span> .<span class="dv">075</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> .<span class="dv">075</span>)</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>sims <span class="ot">&lt;-</span> <span class="fu">epi_dynamics</span>(</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">S0     =</span> <span class="fl">1e5</span> <span class="sc">-</span> prevalence,</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">I10    =</span> <span class="dv">0</span>,</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">I20    =</span> <span class="dv">0</span>,</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">I30    =</span> <span class="dv">0</span>,</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">D0     =</span> prevalence,</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">beta   =</span> <span class="dv">800</span>,</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma1 =</span> sigma,</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma2 =</span> sigma,</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta1 =</span> delta,</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta2 =</span> delta,</span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">delta3 =</span> .<span class="dv">01</span>,</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">gamma  =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fl">1.5</span>,</span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau    =</span>  <span class="sc">-</span> <span class="fu">log</span>(.<span class="dv">9</span>) <span class="sc">/</span> <span class="dv">2</span>, <span class="co"># - log(1 - .9) / 2,</span></span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">rho    =</span> .<span class="dv">15</span>,</span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu     =</span> mu_val,</span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha  =</span> .<span class="dv">3</span>,</span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">times  =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">30</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-layout-align="center" data-hash="tpt_model_cache/html/unnamed-chunk-15_cf49bb1415b805420c0e527a6ea8061f">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(sims, {</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plotl</span>(time, D, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100000</span>))</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(time, I1 <span class="sc">+</span> I2 <span class="sc">+</span> I3, <span class="at">col =</span> <span class="dv">2</span>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="tpt_model_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(sims, <span class="fu">plotl</span>(time, I1 <span class="sc">/</span> (I1 <span class="sc">+</span> I2), <span class="at">ylim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="tpt_model_files/figure-html/unnamed-chunk-15-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
