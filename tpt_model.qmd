@@ -31,13 +31,14 @@ You can ask report errors or for additional analysis [here](https://github.com/T
 
 ## Packages
 
-Required: `deSolve`, `tibble`, `purrr`
+Required: `deSolve`, `tibble`, `purrr`, `dplyr`, `magrittr`, `bbmle`
 
 ```{r}
 library(tibble)
 library(purrr)
 library(dplyr)
 library(magrittr)
+library(bbmle)
 ```
 
 ## Utilitary functions
@@ -62,6 +63,10 @@ lines2 <- function(...) lines(..., lwd = 2)
 legend2 <- function(...) legend(..., bty = "n")
 ```
 
+```{r}
+dpois2 <- function(...) dpois(..., log = TRUE)
+```
+
 ## Epidemiological models
 
 ### $SID$ model
@@ -77,7 +82,7 @@ This model contains human demography but the total population size is kept const
 * possibility of relapse (following recovery without clearance)
 * mortality from disease
 
-![Flow diagram of the SID epidemiological model.](SID.png){width=450 #fig-model-diagram}
+![Flow diagram of the SID epidemiological model.](SID.png){width=450 #fig-SID}
 
 #### Variables
 
@@ -267,5 +272,152 @@ out <- abc(sid, args, function(x, y) y$delta * x["I"],
 
 with(out, plot(beta, delta))
 ```
+
+
+### A minimalist SID
+
+![Flow diagram of a minimalist version of the SID model.](tinySID.png){width=450 #fig-tinySID}
+
+#### Dynamics
+
+$$
+\begin{align} 
+  \frac{dS}{dt} &= (\sigma + \pi) I + \alpha D - \beta DS \\
+  \frac{dI}{dt} &= \beta DS - (\delta + \sigma + \pi) I   \\
+  \frac{dD}{dt} &= \delta I - \alpha D
+\end{align}
+$$
+
+R code:
+
+```{r}
+sid_dyn <- function(N, I0 = 0, D0, beta, sigma, pi, delta, alpha, times) {
+  ode2(c(S = N - I0 - D0, I = I0, D = D0),
+       times,
+       function(time, state, pars) {
+         with(as.list(c(state, pars)), {
+           infection <- beta * D * S
+           dS  <- (sigma + pi) * I + alpha * D - infection
+           dI  <- infection - (delta + sigma + pi) * I
+           dD  <- delta * I - alpha * D
+           list(c(dS, dI, dD))
+         })
+       },
+       c(beta = beta, sigma = sigma, pi = pi, delta = delta, alpha = alpha))
+}
+```
+
+#### Equilibrium
+
+$$
+\begin{align} 
+  S^* &= N - I^* - D^*             \\
+  I^* &= \frac{\alpha}{\delta} D^* \\
+  D^* &= \frac{\delta}{\alpha + \delta} N -
+         \frac{\alpha}{\alpha + \delta} \frac{\delta + \sigma + \pi}{\beta}
+\end{align}
+$$
+
+R code:
+
+```{r}
+sid_equ <- function(N, beta, sigma, pi, delta, alpha) {
+  Dstar <- (delta * N - alpha * (delta + sigma + pi) / beta) / (alpha + delta)
+  Istar <- alpha * Dstar / delta
+  c(S = N - Istar - Dstar, I = Istar, D = Dstar)
+}
+```
+
+Verification:
+
+```{r}
+N <- 1e5
+D0 <- 350
+beta <- .000001
+sigma <- 0
+pi <- 0
+delta <- .0001
+alpha <- 1 / 70
+
+sims <- sid_dyn(N = N, I0 = 0, D0 = D0, beta = beta, sigma = sigma, pi = pi,
+                delta = delta, alpha = alpha, times = seq2(0, 25000))
+
+equs <- sid_equ(N = N, beta = beta, sigma = sigma, pi = pi,
+                delta = delta, alpha = alpha)
+
+opar <- par(mfrow = c(1, 3))
+with(sims, {
+  plotl(time, I, col = 2, xlab = "time (year)", ylab = "infection prevalence")
+  abline(h = equs["I"], col = 2)
+  plotl(time, D, col = 3, xlab = "time (year)", ylab = "disease prevalence")
+  abline(h = equs["D"], col = 3)
+  plotl(time, delta * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
+})
+par(opar)
+```
+
+Minus log-likelihood:
+
+```{r}
+mLL <- function(beta, sigma, delta) {
+  equs <- sid_equ(1e5, beta, sigma, 0, delta, alpha = 1 / 70)
+    - dpois2(inf_prev, equs["I"]) -
+      dpois2(dis_prev, equs["D"]) -
+      dpois2(dis_incd, equs["I"] * delta)
+}
+```
+
+In Vietnam:
+
+
+
+```{r}
+make_mLL <- function(inf_prev, dis_prev, dis_incd, delta = , alpha = 322 / 176, N = 1e5, pi = 0) {
+  function(beta, sigma, delta) {
+    delta <- exp(delta)
+    equs <- sid_equ(N, exp(beta), exp(sigma), pi, delta, alpha)
+    if (any(equs < 0)) return(Inf)
+    - dpois2(inf_prev, equs["I"]) -
+      dpois2(dis_prev, equs["D"]) -
+      dpois2(dis_incd, equs["I"] * delta)
+  }
+}
+```
+
+
+```{r}
+make_mLL <- function(inf_prev, dis_prev, dis_incd, N = 1e5, pi = 0) {
+  alpha <- dis_incd / dis_prev
+  delta <- alpha * dis_prev / inf_prev
+  function(beta, sigma) {
+    equs <- sid_equ(N, exp(beta), exp(sigma), pi, delta, alpha)
+    if (any(equs < 0)) return(Inf)
+    - dpois2(inf_prev, equs["I"]) -
+      dpois2(dis_prev, equs["D"]) -
+      dpois2(dis_incd, equs["I"] * delta)
+  }
+}
+```
+
+
+```{r}
+make_mLL(10000, 176, 322)(log(.00005), log(1e-16))
+```
+
+```{r}
+mle3 <- function(...) {
+  estimate <- mle2(...)
+  estimate@fullcoef <- exp(coef(out))
+  estimate
+}
+```
+
+
+
+```{r}
+out <- mle3(make_mLL(85000, 600, 9), map(list(beta = 1e-6, sigma = 1e-16, delta = 1e-4), log))
+```
+
+
 
 
