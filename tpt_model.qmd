@@ -23,18 +23,22 @@ knitr::opts_chunk$set(echo       = TRUE,
                       fig.align  = "center")
 ```
 
-All the data and source code files are [here](https://github.com/TB-DURATION/mice).
+All the data and source code files are [here](https://github.com/TB-DURATION/tpt-model).
 
-You can ask report errors or for additional analysis [here](https://github.com/TB-DURATION/mice/issues).
+You can ask report errors or for additional analysis [here](https://github.com/TB-DURATION/tpt-model/issues).
 
 ## Introduction
 
 ## Packages
 
-Required: `deSolve`, `tibble`
+Required: `deSolve`, `tibble`, `purrr`, `dplyr`, `magrittr`, `bbmle`
 
 ```{r}
 library(tibble)
+library(purrr)
+library(dplyr)
+library(magrittr)
+library(bbmle)
 ```
 
 ## Utilitary functions
@@ -59,23 +63,28 @@ lines2 <- function(...) lines(..., lwd = 2)
 legend2 <- function(...) legend(..., bty = "n")
 ```
 
+```{r}
+dpois2 <- function(...) dpois(..., log = TRUE)
+```
 
-## $SID$ model
+## Epidemiological models
+
+### $SID$ model
 
 The simplest model we could imagine is a model with only 3 variables: those not
 infected, those infected but not infectious, and those infected, sick and infectious.
 This model contains human demography but the total population size is kept constant
 (i.e. birth and death rates are equal). It also contains:
 
-* clearance from both infected (natural or through prophylaxis) and diseased (natural or
-  through curative treatment)
-* curation can be with or without sterilization
-* relapse (following recovery without clearance)
-* mortality from diseased
+* clearance from infected, from natural immunity of through prophylactic treatment
+* recovery from disease, with and without clearance, from natural immunity or through
+  curative treatment
+* possibility of relapse (following recovery without clearance)
+* mortality from disease
 
-![Flow diagram of the SID epidemiological model.](SID.png){width=450 #fig-model-diagram}
+![Flow diagram of the SID epidemiological model.](SID.png){width=450 #fig-SID}
 
-### Variables
+#### Variables
 
 * $S$: non-infected
 * $I$: infected (and not infectious)
@@ -83,28 +92,30 @@ This model contains human demography but the total population size is kept const
 
 Note that $S + I + D = N$ where $N$ is a constant.
 
-### Parameters
+#### Parameters
 
 * $\beta$: infectious contact rate (/ind)
-* $\sigma$: clearance rate of $I$, either through natural immunity or prophylactic
-  treatment
-* $\delta$: progression rates of infection to disease
-* $\rho$: rate of recovery without clearance (ultimately leading to relapse)
-* $\gamma$: rate of recovery with clearance either from treatment or natural immunity
-* $q$: probability that curation comes with sterilization
-* $\mu$: demographic turn-over rate (*i.e.* birth and death rates equal, see assumption
-  on constant population size)
-* $\alpha$: death rate due to TB
+* $\delta$: progression rate of infection to disease
+* $\sigma$: clearance rate of infected through natural immunity 
+* $\pi$: clearance rate of infected through prophylactic treatment
+* $\gamma$: rate of disease recovery from natural immunity
+* $p$: probability that disease recovery from natural immunity comes with clearance
+* $\tau$: rate of disease recovery from curative treatment
+* $q$: probability that disease recovery from curative treatment comes with clearance
+* $\alpha$: death rate due to disease
+* $\mu$: natural birth and death rates
 
-### Dynamics
+#### Dynamics
 
 Differential equations
 
 $$
 \begin{align} 
-  \frac{dS}{dt}   &= \mu N + (\sigma + \pi) I + (\alpha + q\gamma) D - (\beta D + \mu) S         \\
-  \frac{dI}{dt}   &= \beta D S + (\rho + [1 - q] \gamma) D                     - (\sigma + \pi + \delta + \mu) I \\
-  \frac{dD}{dt}   &= \delta I                               - (\alpha + \gamma + \rho + \mu) D
+  \frac{dS}{dt}   &= (\sigma + \mu + \tau) I +
+                     (p \gamma + q \tau + \alpha + \mu) D - \beta D S                 \\
+  \frac{dI}{dt}   &= \beta D S + ([1 - p] \gamma + [1 - q] \tau) D -
+                     (\delta + \sigma + \mu + \tau) I                                 \\
+  \frac{dD}{dt}   &= \delta I - (\gamma + \tau + \alpha + \mu) D
 \end{align}
 $$
 
@@ -112,7 +123,7 @@ R code:
 
 ```{r}
 sid <- function(
-    S0, I0, D0, beta, sigma, delta, gamma, q, rho, mu, alpha, pi, times) {
+    S0, I0, D0, beta, delta, sigma, pi, gamma, p, tau, q, alpha, mu, times) {
   
   N <- S0 + I0 + D0
   
@@ -121,30 +132,35 @@ sid <- function(
        function(time, state, pars) {
          with(as.list(c(state, pars)), {
            foi <- beta * D * S
-           dS  <- mu * (N - S) + (sigma + pi) * I + (alpha + q * gamma) * D - foi
-           dI  <- foi + (rho + (1 - q) * gamma) * D - (sigma + pi + delta + mu) * I
-           dD  <- delta * I - (alpha + gamma + rho + mu) * D
+           dS  <- (sigma + mu + tau) * I + (p * gamma + q * tau + alpha + mu) * D - foi
+           dI  <- foi + ((1 - p) * gamma + (1 - q) * tau) * D -
+                  (delta + sigma + mu + tau) * I
+           dD  <- delta * I - (gamma + tau + alpha + mu) * D
            list(c(dS, dI, dD))
          })
        },
-       c(beta = beta, sigma = sigma, delta = delta, gamma = gamma, q = q, rho = rho,
-         mu = mu, alpha = alpha, pi = pi))
+       c(beta = beta, delta = delta, sigma = sigma, pi = pi, gamma = gamma, p = p,
+         tau = tau, q = q, alpha = alpha, mu = mu))
 }
 ```
 
+Let's run an example:
+
 ```{r}
+delta <- .01
 sid_sim <- sid(S0    = 1e5 - 350,
                I0    = 0,
                D0    = 350,
                beta  = .00001,
-               sigma = 0, #.1,
-               delta = .04,
-               gamma = 1,
-               q     = .1,
-               rho   = 0,
-               mu    = 1 / 70,
-               alpha = 1 / 3,
+               delta = delta,
+               sigma = 0,
                pi    = 0,
+               gamma = 0,
+               p     = .1,
+               tau   = 0,
+               q     = .1,
+               alpha = 1 / 3,
+               mu    = 1 / 70,
                times = seq2(0, 10000))
 
 opar <- par(mfrow = c(1, 3))
@@ -152,332 +168,256 @@ opar <- par(mfrow = c(1, 3))
 with(sid_sim, {
   plotl(time, I, col = 2, xlab = "time (year)", ylab = "infection prevalence")
   plotl(time, D, col = 3, xlab = "time (year)", ylab = "disease prevalence")
-  plotl(time, .04 * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
+  plotl(time, delta * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
 })
 
 par(opar)
 ```
-
-```{r}
-sid_sim <- do.call(sid, list(S0    = 1e5 - 350,
-               I0    = 0,
-               D0    = 350,
-               beta  = .00001,
-               sigma = 0, #.1,
-               delta = .04,
-               gamma = 1,
-               q     = .1,
-               rho   = 0,
-               mu    = 1 / 70,
-               alpha = 1 / 3,
-               pi    = 0,
-               times = seq2(0, 10000)))
-
-opar <- par(mfrow = c(1, 3))
-
-with(sid_sim, {
-  plotl(time, I, col = 2, xlab = "time (year)", ylab = "infection prevalence")
-  plotl(time, D, col = 3, xlab = "time (year)", ylab = "disease prevalence")
-  plotl(time, .04 * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
-})
-
-par(opar)
-```
-
 
 ### Calibration
 
 * infection prevalence: somewhere between 10 and 30% of the population
 * disease prevalence: somewhere between 50 and 500 / 100,000
-* disease incidence: 
+* disease incidence: close to disease prevalence
+
+A function that looks for the endemic equilibrium:
 
 ```{r}
-equilibrium <- function(f, args) {
-  out <- do.call(f, args)
-  
-  nr <- nrow(out)
-  final <- sid_sim[c(nr - 10, nr), -1]
-  
+equilibrium <- function(f, args, p = .1, eps = 1e-2) {
+  sims <- do.call(f, args)
+  nr <- nrow(sims)
+  from <- nr - round(p * nr)
+  final <- sims[(nr - round(p * nr)) : nr, -1]
+  final_val <- tail(final, 1)
+  while (max(map_dbl(final, ~ max(abs(diff(.x))))) > eps) {
+    final_val <- tail(final, 1)
+    args[paste0(names(final_val), "0")] <- final_val
+    sims <- do.call(f, args)
+    final <- sims[from : nr, -1]
+  }
+  unlist(final_val)
 }
 ```
 
+Let's try it:
 
-## $SI_aI_dD$ model
+```{r}
+args <- list(S0    = 1e5 - 350,
+             I0    = 0,
+             D0    = 350,
+             beta  = .00001,
+             delta = .01,
+             sigma = 0,
+             pi    = 0,
+             gamma = 0,
+             p     = .1,
+             tau   = 0,
+             q     = .1,
+             alpha = 1 / 3,
+             mu    = 1 / 70,
+             times = seq2(0, 10000))
 
-Compared to the $SID$ model, the $SI_aI_dD$ model separates the infected who will
-ultimately develop the disease ($I_d$) with probability $p$ from those who will not
-($I_a$). The later can spontaneously clear the bacillus.
 
-![Flow diagram of the $SI_aI_dD$ epidemiological model.](SIaIdD.png){width=450 #fig-model-diagram}
+out <- equilibrium(sid, args)
+# per 100,000:
+c(out, yearly_disease_incidence = args$delta * unname(out["I"]))
+```
 
-### Variables
+ABC:
 
-* $S$: non-infected
-* $I_a$: infected (and not infectious) and that will never become infectious
-* $I_d$: infected (and not infectious) and that ultimately become infectious
-* $D$: sick and infectious
-* $N = S + I_a + I_d + D$
+```{r}
+abc <- function(f, args, icdnc, target, n = 100, p = .1, eps = 1e-2) {
+  idx <- which(map_int(args, length) == 2)
+  
+  get_eq <- function(x) {
+    args[idx] <- x
+    out <- equilibrium(f, args)[-1]
+    c(out, icdnc(out, args))
+  }
+  
+  vls <- args[idx] %>%
+    map_df(~ runif(n, .x[1], .x[2])) %>% 
+    t() %>% 
+    as.data.frame()
+  
+  vls %>% 
+    map(get_eq) %>% 
+    map_lgl(~ all(.x > map(target, first) & .x < map(target, last))) %>% 
+    extract(vls, .) %>% 
+    t() %>% 
+    as_tibble()
+}
+```
 
-### Parameters
+Let's try it:
 
-* $\beta$: infectious contact rate (/ind)
-* $p$: proportion of infected that will ultimately become infectious
-* $\sigma$: clearance rate of $I$, either through natural immunity or prophylactic
-  treatment
-* $\delta$: progression rates of infection to disease
-* $\rho$: rate of recovery without clearance (ultimately leading to relapse)
-* $\gamma$: rate of recovery with clearance either from treatment or natural immunity
-* $\mu$: demographic turn-over rate (*i.e.* birth and death rates equal, see assumption
-  on constant population size)
-* $\alpha$: death rate due to TB
+```{r}
+args <- list(S0    = 1e5 - 350,
+             I0    = 0,
+             D0    = 350,
+             beta  = c(.000005, .000015),
+             delta = c(.005, .015),
+             sigma = 0,
+             pi    = 0,
+             gamma = 0,
+             p     = .1,
+             tau   = 0,
+             q     = .1,
+             alpha = 1 / 3,
+             mu    = 1 / 70,
+             times = seq2(0, 10000))
 
-### Dynamics
+out <- abc(sid, args, function(x, y) y$delta * x["I"],
+    list(c(5000, 35000), c(50, 500), c(50, 500)), 1000)
 
-Differential equations:
+with(out, plot(beta, delta))
+```
+
+
+### A minimalist SID
+
+![Flow diagram of a minimalist version of the SID model.](tinySID.png){width=450 #fig-tinySID}
+
+#### Dynamics
 
 $$
 \begin{align} 
-  \frac{dS}{dt}   &= \mu N + \sigma I_a + (\alpha + \gamma) D - (\beta D + \mu) S     \\
-  \frac{dI_a}{dt} &= (1 - p) \beta D S                        - (\sigma + \mu) I_a    \\
-  \frac{dI_d}{dt} &= p \beta D S + \rho D                     - (\delta + \mu) I_d    \\
-  \frac{dD}{dt}   &= \delta I_d                               - (\alpha + \gamma + \rho + \mu) D
+  \frac{dS}{dt} &= (\sigma + \pi) I + \alpha D - \beta DS \\
+  \frac{dI}{dt} &= \beta DS - (\delta + \sigma + \pi) I   \\
+  \frac{dD}{dt} &= \delta I - \alpha D
 \end{align}
 $$
 
 R code:
 
 ```{r}
-sid_mod <- function(
-    S0, I0, D0,
-    beta, sigma, delta, gamma, rho, mu, alpha, times) {
-  
-  N <- S0 + I0 + D0
-  
-  ode2(c(S = S0, I = I0, D = D0),
+sid_dyn <- function(N, I0 = 0, D0, beta, sigma, pi, delta, alpha, times) {
+  ode2(c(S = N - I0 - D0, I = I0, D = D0),
        times,
        function(time, state, pars) {
          with(as.list(c(state, pars)), {
-           foi <- beta * D * S
-           dS  <- mu * (N - S) + sigma * I + (alpha + gamma) * D - foi
-           dI  <- foi + rho * D - (mu + sigma + delta) * I
-           dD  <- delta * I - (mu + alpha + gamma + rho) * D
+           infection <- beta * D * S
+           dS  <- (sigma + pi) * I + alpha * D - infection
+           dI  <- infection - (delta + sigma + pi) * I
+           dD  <- delta * I - alpha * D
            list(c(dS, dI, dD))
          })
        },
-       c(beta = beta, gamma = gamma, rho = rho, sigma = sigma,
-         delta = delta, mu = mu, alpha = alpha))
+       c(beta = beta, sigma = sigma, pi = pi, delta = delta, alpha = alpha))
 }
 ```
 
-
-### Equilibrium
-
-Equations:
+#### Equilibrium
 
 $$
 \begin{align} 
-  S^*   &= N - I_a^* - I_d^* - D^*                                                      \\
-  I_a^* &= \frac{(N - I_d^* - D^*) (1 - p) \beta D^*}{(1 - p) \beta D^* + \sigma + \mu} \\
-  I_d^* &= \frac{\alpha + \gamma + \rho + \mu}{\delta} D^*                              \\
-  D^*   &= \frac{p \beta \delta N - (\alpha + \gamma) (\delta + \mu) - (\gamma + \delta + \rho + \mu) \mu}
-                {(\alpha + \gamma) [(1 - p) \delta + p \sigma + \mu] + (p \sigma + \mu) (\delta + \rho + \mu)}
-           \frac{\sigma + \mu}{\beta}
+  S^* &= N - I^* - D^*             \\
+  I^* &= \frac{\alpha}{\delta} D^* \\
+  D^* &= \frac{\delta}{\alpha + \delta} N -
+         \frac{\alpha}{\alpha + \delta} \frac{\delta + \sigma + \pi}{\beta}
 \end{align}
 $$
 
 R code:
 
 ```{r}
-sid_equ <- function(N, beta, sigma, delta, gamma, rho, mu, alpha) {
-  Dstar <- (beta * delta * N - (delta + mu + rho) * mu - (mu + rho) * sigma -
-              (delta + mu + sigma) * (alpha + gamma)) / 
-    (beta * (alpha + gamma + delta + mu + rho))
-  Istar <- (mu + alpha + gamma + rho) * Dstar / delta
-  c(Sstar = N - Istar - Dstar,
-    Istar = Istar,
-    Dstar = Dstar)
+sid_equ <- function(N, beta, sigma, pi, delta, alpha) {
+  Dstar <- (delta * N - alpha * (delta + sigma + pi) / beta) / (alpha + delta)
+  Istar <- alpha * Dstar / delta
+  c(S = N - Istar - Dstar, I = Istar, D = Dstar)
 }
 ```
 
-### Numerical verification
+Verification:
 
 ```{r}
-pvlc <- 350
+N <- 1e5
+D0 <- 350
+beta <- .000001
+sigma <- 0
+pi <- 0
+delta <- .0001
+alpha <- 1 / 70
 
-sid_mod_sim <- sid_mod(
-  S0 = 1e5 - pvlc,
-  I0 = 0,
-  D0 = pvlc,
-  beta = 1.2e-5,
-  sigma = 0, #.1,
-  delta = - log(1 - .9) / 2,
-  gamma = 1 / 1.5,
-  rho = 0, #.15,
-  mu = 1 / 70,
-  alpha = .3,
-  times = seq2(0, 100)
-)
+sims <- sid_dyn(N = N, I0 = 0, D0 = D0, beta = beta, sigma = sigma, pi = pi,
+                delta = delta, alpha = alpha, times = seq2(0, 25000))
 
-sid_equ_val <- sid_equ(
-  N = 1e5,
-  beta = 1.2e-5,
-  sigma = 0, #.1,
-  delta = - log(1 - .9) / 2,
-  gamma = 1 / 1.5,
-  rho = 0, #.15,
-  mu = 1 / 70,
-  alpha = .3
-)
+equs <- sid_equ(N = N, beta = beta, sigma = sigma, pi = pi,
+                delta = delta, alpha = alpha)
 
-
-with(sid_mod_sim, {
-  plotl(time, D, col = 3, xlab = "time (year)", ylab = "number of individuals")
-  lines2(time, I, col = 4)
-})
-
-abline(h = sid_equ_val[c("Dstar", "Istar")], col = c(3, 4))
-
-legend2("bottomright", legend = c("infected", "diseased"), col = 4:3, lwd = 2, lty = 1)
-```
-
-
-## Epidemiological model
-
-### Assumptions
-
-* Constant population size
-* No population structure other than clinical status
-
-### Variables
-
-* $S$: non-infected
-* $I_1$: recently infected
-* $I_2$: infected a long time ago
-* $I_3$: treated but not sterilized
-* $D$: sick and infectious (we do not discriminate PTB from EPTB)
-* $N = S + I_1 + I_2 + I_3 + D$
-
-**Note:** only $D$ are infectious.
-
-### Parameters
-
-* $\beta$: infectious contact rate (/ind)
-* $\sigma_1$ and $\sigma_2$: clearance rates of $I_1$ and $I_2$ respectively, either
-  through natural immunity or prophylactic treatment
-* $\delta_1$, $\delta_2$ and $\delta_3$: progression rates of infection to disease for
-  $I_1$, $I_2$ and $I_3$ (relapse) respectively
-* $\gamma$: rate of recovery with clearance either from treatment or natural immunity
-* $\rho$: rate of recovery without clearance (ultimately leading to relapse)
-* $\tau$: rate at which infected transit from a status of recent infection to a status
-  of non-recent infection
-* $\mu$: demographic turn-over rate (*i.e.* birth and death rates equal, see assumption
-  on constant population size)
-* $\alpha$: death rate due to TB
-
-**Note:** all these rates are *per year* and *per capita*.
-
-
-### Flow diagram
-
-![Flow diagram of the epidemiological model.](SI1I2I3D.png){width=450 #fig-model-diagram}
-
-### Differential equations
-
-$$
-\begin{align} 
-  \frac{dS}{dt}   &= \mu N + \sigma_1 I_1 + \sigma_2 I_2 + \gamma D -
-     \left(\mu + \beta \frac{D}{N} \right) S                                          \\
-  \frac{dI_1}{dt} &= \beta \frac{D}{N} S - (\mu + \sigma_1 + \delta_1 + \tau) I_1     \\
-  \frac{dI_2}{dt} &= \tau I_1 - (\mu + \delta_2 + \sigma_2) I_2                       \\
-  \frac{dI_3}{dt} &= \rho D - (\mu + \delta_3) I_3                                    \\
-  \frac{dD}{dt}   &= \delta_1 I_1 + \delta_2 I_2 + \delta_3 I_3 -
-     (\mu + \alpha + \gamma + \rho) D
-\end{align}
-$$
-
-### R code
-
-```{r}
-epi_dynamics <- function(
-    S0, I10, I20, I30, D0,
-    beta, sigma1, sigma2, delta1, delta2, delta3, gamma, tau, rho, mu, alpha, times) {
-  
-  N <- S0 + I10 + I20 + I30 + D0
-  
-  ode2(c(S = S0, I1 = I10, I2 = I20, I3 = I30, D = D0),
-       times,
-       function(time, state, pars) {
-         with(as.list(c(state, pars)), {
-           foi <- beta * D * S / N
-           dS  <- mu * (N - S) + sigma1 * I1 + sigma2 * I2 + gamma * D - foi
-           dI1 <- foi - (mu + sigma1 + delta1 + tau) * I1
-           dI2 <- tau * I1 - (mu + delta2 + sigma2) * I2
-           dI3 <- rho * D - (mu + delta3) * I3
-           dD  <- delta1 * I1 + delta2 * I2 + delta3 * I3 - (mu + alpha + gamma + rho) * D
-           list(c(dS, dI1, dI2, dI3, dD))
-         })
-       },
-       c(beta = beta, gamma = gamma, rho = rho,
-         sigma1 = sigma1, sigma2 = sigma2,
-         delta1 = delta1, delta2 = delta2, delta3 = delta3,
-         mu = mu, alpha = alpha))
-}
-```
-
-
-### TB data
-
-* infection prevalence: 322 (95% CI: 260–399) TB cases/100,000 adults
-  ([Nguyen *et al.* PLoS ONE 2020](https://doi.org/10.1371/journal.pone.0232142))
-* 5-10% of those infected develop TB in their lifetime
-* among those who develop disease, about 90% do so within 2 years
-* 125,000 new TB cases in Vietnam in 2018
-
-If $p\%$ of those who develop disease (to $D$) do so within $E$ years, then the $\tau$
-rate should read:
-
-$$
-\tau \simeq -\frac{\ln(1 - p)}{E}
-$$
-
-If $q%$ of those infected develop TB in their lifetime, then
-
-$$
-\delta_1 = \delta_2 \simeq \frac{q}{1 - q} \mu
-$$
-
-```{r}
-prevalence <- 100
-mu_val <- .02
-sigma <- .1
-delta <- mu_val * .075 / (1 - .075)
-
-sims <- epi_dynamics(
-  S0     = 1e5 - prevalence,
-  I10    = 0,
-  I20    = 0,
-  I30    = 0,
-  D0     = prevalence,
-  beta   = 800,
-  sigma1 = sigma,
-  sigma2 = sigma,
-  delta1 = delta,
-  delta2 = delta,
-  delta3 = .01,
-  gamma  = 1 / 1.5,
-  tau    =  - log(.9) / 2, # - log(1 - .9) / 2,
-  rho    = .15,
-  mu     = mu_val,
-  alpha  = .3,
-  times  = seq2(0, 30))
-```
-
-```{r}
+opar <- par(mfrow = c(1, 3))
 with(sims, {
-  plotl(time, D, ylim = c(0, 100000))
-  lines2(time, I1 + I2 + I3, col = 2)
+  plotl(time, I, col = 2, xlab = "time (year)", ylab = "infection prevalence")
+  abline(h = equs["I"], col = 2)
+  plotl(time, D, col = 3, xlab = "time (year)", ylab = "disease prevalence")
+  abline(h = equs["D"], col = 3)
+  plotl(time, delta * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
 })
-
-with(sims, plotl(time, I1 / (I1 + I2), ylim = 0:1))
+par(opar)
 ```
+
+Minus log-likelihood:
+
+```{r}
+mLL <- function(beta, sigma, delta) {
+  equs <- sid_equ(1e5, beta, sigma, 0, delta, alpha = 1 / 70)
+    - dpois2(inf_prev, equs["I"]) -
+      dpois2(dis_prev, equs["D"]) -
+      dpois2(dis_incd, equs["I"] * delta)
+}
+```
+
+In Vietnam:
+
+
+
+```{r}
+make_mLL <- function(inf_prev, dis_prev, dis_incd, delta = , alpha = 322 / 176, N = 1e5, pi = 0) {
+  function(beta, sigma, delta) {
+    delta <- exp(delta)
+    equs <- sid_equ(N, exp(beta), exp(sigma), pi, delta, alpha)
+    if (any(equs < 0)) return(Inf)
+    - dpois2(inf_prev, equs["I"]) -
+      dpois2(dis_prev, equs["D"]) -
+      dpois2(dis_incd, equs["I"] * delta)
+  }
+}
+```
+
+
+```{r}
+make_mLL <- function(inf_prev, dis_prev, dis_incd, N = 1e5, pi = 0) {
+  alpha <- dis_incd / dis_prev
+  delta <- alpha * dis_prev / inf_prev
+  function(beta, sigma) {
+    equs <- sid_equ(N, exp(beta), exp(sigma), pi, delta, alpha)
+    if (any(equs < 0)) return(Inf)
+    - dpois2(inf_prev, equs["I"]) -
+      dpois2(dis_prev, equs["D"]) -
+      dpois2(dis_incd, equs["I"] * delta)
+  }
+}
+```
+
+
+```{r}
+make_mLL(10000, 176, 322)(log(.00005), log(1e-16))
+```
+
+```{r}
+mle3 <- function(...) {
+  estimate <- mle2(...)
+  estimate@fullcoef <- exp(coef(out))
+  estimate
+}
+```
+
+
+
+```{r}
+out <- mle3(make_mLL(85000, 600, 9), map(list(beta = 1e-6, sigma = 1e-16, delta = 1e-4), log))
+```
+
+
+
 
