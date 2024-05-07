@@ -3,6 +3,7 @@ title: "TPT model"
 format: html
 editor: source
 toc: true
+toc-depth: 4
 number-sections: true
 echo: true
 code-fold: false
@@ -79,19 +80,35 @@ abline2 <- function(..., col = 2) abline(..., lwd = lwd_val, col = col)
 plot2 <- function(..., col = 4) plot(..., type = "l", lwd = lwd_val, col = col)
 ```
 
+```{r}
+plot4 <- function(...) plot2(..., xlab = "actual duration of treatment (days)")
+```
+
+```{r}
+legend2 <- function(...) legend(..., lty = 1, lwd = lwd_val, bty = "n")
+```
+
+```{r}
+polygon2 <- function(x, y, col = 4, alpha = .2, ...) {
+  polygon(c(x[1], x, tail(x, 1)), c(0, y, 0), col = adjustcolor(col, alpha),
+          border = NA)
+}
+```
+
 
 ## Epidemiological models
 
+
 ### A minimalist SID
 
-![Flow diagram of a minimalist version of the SID model.](tinySID.png){width=450 #fig-tinySID}
+![Flow diagram of a minimalist SID model.](SIDbis.png){width=460 #fig-tinySID}
 
 #### Dynamics
 
 $$
 \begin{align} 
-  \frac{dS}{dt} &= (\sigma + \pi) I + \alpha D - \beta DS \\
-  \frac{dI}{dt} &= \beta DS - (\delta + \sigma + \pi) I   \\
+  \frac{dS}{dt} &= \sigma I + \alpha D - (1 - \pi) \beta DS \\
+  \frac{dI}{dt} &= (1 - \pi) \beta DS - (\delta + \sigma) I   \\
   \frac{dD}{dt} &= \delta I - \alpha D
 \end{align}
 $$
@@ -104,9 +121,9 @@ sid_dyn <- function(N, I0 = 0, D0, beta, sigma, pi, delta, alpha, times) {
        times,
        function(time, state, pars) {
          with(as.list(c(state, pars)), {
-           infection <- beta * D * S
-           dS  <- (sigma + pi) * I + alpha * D - infection
-           dI  <- infection - (delta + sigma + pi) * I
+           infection <- (1 - pi) * beta * D * S
+           dS  <- sigma * I + alpha * D - infection
+           dI  <- infection - (delta + sigma) * I
            dD  <- delta * I - alpha * D
            list(c(dS, dI, dD))
          })
@@ -122,7 +139,7 @@ $$
   S^* &= N - I^* - D^*             \\
   I^* &= \frac{\alpha}{\delta} D^* \\
   D^* &= \frac{\delta}{\alpha + \delta} N -
-         \frac{\alpha}{\alpha + \delta} \frac{\delta + \sigma + \pi}{\beta}
+         \frac{\alpha}{\alpha + \delta} \frac{\delta + \sigma}{(1 - \pi)\beta}
 \end{align}
 $$
 
@@ -130,40 +147,53 @@ R code:
 
 ```{r}
 sid_equ <- function(N, beta, sigma, pi, delta, alpha) {
-  Dstar <- (delta * N - alpha * (delta + sigma + pi) / beta) / (alpha + delta)
+  Dstar <- delta * N / (alpha + delta) - alpha * (delta + sigma) /
+           ((alpha + delta) * (1 - pi) * beta)
   Istar <- alpha * Dstar / delta
   c(S = N - Istar - Dstar, I = Istar, D = Dstar)
 }
 ```
 
-Verification:
+A function that plots the dynamics and equilibrium values of the infection prevalence
+and the disease incidence and prevalence:
 
 ```{r}
-N <- 1e5
-D0 <- 350
-beta <- .000001
-sigma <- 0
-pi <- 0
-delta <- .0001
-alpha <- 1 / 70
+plot_dyn_equ <- function(
+    N     = 1e5,
+    D0    = 350,
+    beta  = .000001,
+    sigma = 0,
+    pi    = 0,
+    delta = .0001,
+    alpha = 1 / 70,
+    times = seq2(0, 25000)) {
+  sims <- sid_dyn(N = N, I0 = 0, D0 = D0, beta = beta, sigma = sigma, pi = pi,
+                  delta = delta, alpha = alpha, times = times)
 
-sims <- sid_dyn(N = N, I0 = 0, D0 = D0, beta = beta, sigma = sigma, pi = pi,
-                delta = delta, alpha = alpha, times = seq2(0, 25000))
-
-equs <- sid_equ(N = N, beta = beta, sigma = sigma, pi = pi,
-                delta = delta, alpha = alpha)
-
-opar <- par(mfrow = c(1, 3))
-with(sims, {
-  plotl(time, I, col = 2, xlab = "time (year)", ylab = "infection prevalence")
-  abline(h = equs["I"], col = 2)
-  plotl(time, D, col = 3, xlab = "time (year)", ylab = "disease prevalence")
-  abline(h = equs["D"], col = 3)
-  plotl(time, delta * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
-  abline(h = delta * equs["I"], col = 4)
-})
-par(opar)
+  equs <- sid_equ(N = N, beta = beta, sigma = sigma, pi = pi,
+                  delta = delta, alpha = alpha)
+  
+  plotl2 <- function(...) plotl(..., xlab = "time (year)")
+  
+  opar <- par(mfrow = c(1, 3), cex = 1, plt = c(.25, .95, .25, .9))
+  with(sims, {
+    plotl2(time, I, col = 2, ylab = "infection prevalence")
+    abline(h = equs["I"], col = 2)
+    plotl2(time, D, col = 3, ylab = "disease prevalence")
+    abline(h = equs["D"], col = 3)
+    plotl2(time, delta * I, col = 4, ylab = "yearly disease incidence")
+    abline(h = delta * equs["I"], col = 4)
+  })
+  par(opar)
+}
 ```
+
+Let's do some verification:
+
+```{r fig.height = 2.7}
+plot_dyn_equ()
+```
+
 
 #### Calibration
 
@@ -202,32 +232,14 @@ In Vietnam:
 
 Let's see:
 
-```{r}
-N <- 1e5
-D0 <- 176
-beta  <- p_val[["beta"]]
-sigma <- 0
-pi <- 0
-delta <- p_val[["delta"]]
-alpha <- p_val[["alpha"]]
-
-sims <- sid_dyn(N = N, I0 = 0, D0 = D0, beta = beta, sigma = sigma, pi = pi,
-                delta = delta, alpha = alpha, times = seq2(0, 3000))
-
-equs <- sid_equ(N = N, beta = beta, sigma = sigma, pi = pi,
-                delta = delta, alpha = alpha)
-
-opar <- par(mfrow = c(1, 3))
-with(sims, {
-  plotl(time, I, col = 2, xlab = "time (year)", ylab = "infection prevalence")
-  abline(h = equs["I"], col = 2)
-  plotl(time, D, col = 3, xlab = "time (year)", ylab = "disease prevalence")
-  abline(h = equs["D"], col = 3)
-  plotl(time, delta * I, col = 4, xlab = "time (year)", ylab = "yearly disease incidence")
-  abline(h = delta * equs["I"], col = 4)
-})
-par(opar)
+```{r fig.height = 2.7}
+plot_dyn_equ(D0    = 176,
+             beta  = p_val[["beta"]],
+             delta = p_val[["delta"]],
+             alpha = p_val[["alpha"]],
+             times = seq2(0, 3000))
 ```
+
 
 ## Prophylaxis model
 
@@ -271,35 +283,111 @@ walk2(hs, cols, ~ lines2(xs, hill(xs, X, Y, h = .x), col = .y))
 
 ### Treatment uptake
 
-We can model the probability of treatment uptake as a function of the treatment
-duration using a Hill equation as so:
+We can model the probability $\upsilon(d)$ of treatment uptake as a function of the
+proposed treatment duration $d$ using a Hill equation as so:
+
+$$
+\upsilon(d) = \frac{X_\upsilon^{h_\upsilon}}{X_\upsilon^{h_\upsilon} + d^{h_\upsilon}}
+$$
+
+In R:
+
+```{r}
+uptake <- function(pd, Xv, hv) {
+  X2h <- Xv ^ hv
+  X2h / (X2h + pd ^ hv)
+}
+```
+
+An example:
 
 ```{r}
 ds <- seq2(0, 30)
-plot2(ds, 1 - hill(ds, 15, 1, 4), ylim = 0:1,
+plot2(ds, uptake(ds, 15, 4), ylim = 0:1,
       xlab = "duration of treatment (days)", ylab = "uptake probability")
 ```
 
-### Treatment adherence and effective duration of treatment
+### Treatment adherence
 
-Call $f(t)$ the probability that a person stops her treatment of day $t$, conditional to
-the fact that she didn't stop it before $t$.
+#### Conditional dropping probability
 
-Let's assume that the probability $f$ that somebody stops his/her treatment
-increases with the number of days s/he's been taking the treatment according to
-a Hill equation, reflecting some **fatigue effect** of being in the treatment. Let's
-further assume that this probability gets mitigated as we get close to the end of the
-treatment, reflecting the effect that a person is not likely to drop a treatment anymore
-when s/he gets close to the end of the treatment (**"finish line" effect**). This
-mitigation effect $m \in [0,1]$ is modelled with a Hill equation as well. The
-probability $p(t)$ that somebody on his/her day $t$ of treatment drops it then reads
+Call $p(t)$ the probability that a person who, at day $t$, has not stopped her treatment
+yet, decides to stop it. This probability could be constant and independent of the
+duration the person has been in the treatment. On the contrary, we could imagine that
+this probability could depend on the duration the person has been in the treatment. And
+this dependency could result from 2 effects:
+
+* a **fatigue effect** whereby $p(t)$ would increase with $t$;
+* a **finish-line effect** whereby $p(t)$ would decreases nearby the end of treatment.
+
+In order to account for all these possibilities, we model the fatigue effect as a
+probability $f(t)$ increasing with time $t$ being in the treatment according to a Hill
+equation:
+
+$$
+f(t) = Y_f\frac{t^{h_f}}{X_f^{h_f} + t^{h_f}}
+$$
+
+and the finish-line effect as a decreasing mitigation weight $m(t) \in [0, 1]$ of
+$f(t)$, also modelled with a Hill equation as so:
+
+$$
+m(t) = 1 - Y_m\frac{t^{h_m}}{X_m^{h_m} + t^{h_m}}
+$$
+
+where $Y_m \leq 1$. From here the conditional probability $p(t)$ reads
 
 $$
 p(t) = m(t) \times f(t)
 $$
 
-From this we can express the probability that somebody stops his/her treatment
-**at time $t$** as
+Let's look at some examples:
+
+```{r}
+probabilities <- function(
+    pd = 40,                      # proposed duration of treatment
+    Xf  = 25,   Yf = .8, hf = 7,  # fatigue
+    Xmp = .875, Ym = 1,  hm = 50, # mitigation of fatigue
+    lwd = 2,
+    ylim = 0:1,
+    add = FALSE,
+    lgnd = TRUE) {                # whether to add the legend to the plot or not
+  
+  Xm <- Xmp * pd
+  ts <- seq2(0, pd)
+
+  fatigue <- hill(ts, Xf, Yf, hf)
+  mitigation <- 1 - hill(ts, Xm, Ym, hm)
+  
+  if (! add) plot(ts, fatigue, ylim = ylim, col = 3, type = "l", lwd = lwd,
+                  xlab = "time in treatment (days)",
+                  ylab = "probability or mitigation factor")
+  lines2(ts, mitigation, col = 2)
+  lines2(ts, mitigation * fatigue, col = 4)
+  
+  if (lgnd & ! add)
+    legend2("left", col = c(3, 2, 4),
+            legend = c("fatigue", "mitigation of fatigue", "dropping probability"))
+}
+```
+
+Executing the function:
+
+```{r}
+probabilities()
+```
+
+Note that this model accounts for the special case where $p(t)$ is a constant
+independent of time:
+
+```{r}
+probabilities(hf = 0, hm = 0, Ym = .05, Yf = .4)
+```
+
+#### Duration of treatment distribution
+
+From $p(t)$ we can express the probability that somebody stops her treatment exactly at
+time $t$ as
 
 $$
 P(t) = p(t)\prod_{x=0}^{{}^{-}t}(1 - p(x))^{dx}
@@ -312,6 +400,214 @@ $$
 \varphi(t, d) = \frac{P(t)}{\int_{0}^d P(x)dx}
 $$
 
-where $d$ is the **proposed duration of treatment**.
+where $d$ is the **proposed duration of treatment**. Let's see this in R. First a
+function that computes the dropping probability:
 
-Let's look at some examples:
+```{r}
+dropping_probability <- function(
+    pd = 40,                        # proposed duration of treatment
+    Xf  = 25,   Yf = .8, hf = 7,    # fatigue
+    Xmp = .875, Ym = 1,  hm = 50,   # mitigation of fatigue
+    by = pd / (le - 1), le = 512) { # sampling day in the treatment
+
+  ts <- seq(0, pd, by)
+  tibble(x = ts,
+         y = hill(ts, Xf, Yf, hf) * (1 - hill(ts, Xmp * pd, Ym, hm)))
+}
+```
+
+This is what it gives:
+
+```{r}
+dropping_probability()
+```
+
+where the first column is the time $t$ in treatment and the second column the
+conditional probability $p(t)$ of dropping. This function is used by the following one
+to compute the probability distribution of the effective duration of treatment:
+
+```{r}
+effective_duration <- function(
+    pd = 40,                        # proposed duration of treatment
+    Xf  = 25,   Yf = .8, hf = 7,    # fatigue
+    Xmp = .875, Ym = 1,  hm = 50,   # mitigation of fatigue
+    by = pd / (le - 1), le = 512) { # sampling effective durations of treatment
+  
+  dp <- dropping_probability(pd, Xf, Yf, hf, Xmp, Ym, hm, by, le)
+  y <- dp$y
+  dens <- c(y[1], y[-1] * cumprod(1 - y[-length(y)]))
+  tibble(x = dp$x,
+         y = dens / sum(dens))
+}
+```
+
+Let's try it:
+
+```{r}
+with(effective_duration(), {
+  plot4(x, y, ylab = "probability density")
+  polygon2(x, y)
+})
+```
+
+A function that helps visualizing the relationship between proposed duration of
+treatment (vertical grey lines) and the distribution of the actual duration of
+treatment (in blue):
+
+```{r}
+explore_dropping <- function(
+    Xf  = 200,  Yf  = .15, hf  = 7,
+    Xmp = .875, Ym  = 1,   hm  = 50,
+    by  = .1, ylim = c(0, .2),
+    proposed_durations = c(20, 40, seq(60, 100, 10))) {
+
+  proposed_durations <- sort(proposed_durations)
+
+  eds <- map(proposed_durations,
+             ~ effective_duration(.x, Xf, Yf, hf, Xmp, Ym, hm, by))
+  
+  opar <- par(mfrow = 2:1, plt = c(.1, .96, .21, .93))
+  
+  probabilities(tail(proposed_durations, 1),
+                Xf, Yf, hf, Xmp, Ym, hm, lwd = 4, ylim = ylim, lgnd = FALSE)
+  walk(head(proposed_durations, -1),
+       ~ probabilities(.x, Xf, Yf, hf, Xmp, Ym, hm, add = TRUE))
+  
+  plot(NA,
+       xlim = c(0, max(proposed_durations)),
+       ylim = c(0, max(unlist(map(eds, ~ .x$y)))),
+       xlab = "effective duration of treatment (days)",
+       ylab = "probability density")
+  walk(eds, ~ with(.x, {
+    lines2(.x$x, .x$y, col = 4)
+    polygon2(x, y)
+  }))
+  abline2(v = proposed_durations, col = "grey")
+  
+  par(opar)
+}
+```
+
+Let's play with it:
+
+```{r fig.height = 6}
+explore_dropping(Xmp = .95, hm = 50, ylim = c(0, .0007))
+```
+
+A function to draw durations from the distribution:
+
+```{r}
+draw_durations <- function(
+    pd = 40,                        # proposed duration of treatment
+    Xf  = 25,   Yf = .8, hf = 7,    # fatigue
+    Xmp = .875, Ym = 1,  hm = 50,   # mitigation of fatigue
+    by = pd / (le - 1), le = 512,   # sampling effective durations of treatment 
+    n = 1000) {                     # number to draw
+  with(effective_duration(pd, Xf, Yf, hf, Xmp, Ym, hm, by, le), sample(x, n, TRUE, y)) 
+}                    
+```
+
+Let's try it:
+
+```{r}
+draw_durations(n = 10)
+```
+
+
+### Treatment efficacy
+
+We can assume that the treatment efficacy $\varepsilon(\phi)$ as a function of the
+actual duration $\phi$ of treatment also follows a Hill equation:
+
+$$
+\varepsilon(\phi) = Y_\varepsilon\frac{\phi^{h_\varepsilon}}{X_\varepsilon^{h_\varepsilon}
+                    + \phi^{h_\varepsilon}}
+$$
+
+An illustration:
+
+```{r}
+ts <- seq2(0, 30)
+plot4(ts, hill(ts, 10, 1, 1), ylim = 0:1, ylab = "treatment efficacy")
+```
+
+## Full model
+
+The $\pi$ proportion of the epidemiological model can now be expressed as:
+
+$$
+\pi(d, \theta_\upsilon, \theta_\varepsilon) = \tau \times \upsilon(d, \theta_\upsilon) \times \varepsilon(d, \theta_\varepsilon)
+$$
+
+where $\tau$ is the proportion of recent infections that can be identified through
+contact tracing and $d$ is the proposed duration of treatment. In R:
+
+```{r}
+pi_value <- function(
+    tau = .99,
+    pd = 10,
+    
+    Xv  = 15, hv = 4,
+    Xf  = 200,  Yf = .15, hf = 7,
+    Xmp = .875, Ym = 1,   hm = 50,
+    Xe  = 10,   Ye = 1,   he = 1,
+    
+    by = pd / (le - 1), le = 512,
+    n = 1000) {
+  
+  tau *
+    uptake(pd, Xv, hv) *
+    hill(draw_durations(pd, Xf, Yf, hf, Xmp, Ym,  hm, by, le, n), Xe, Ye, he)
+}
+```
+
+```{r}
+pi_values <- pi_value()
+```
+
+Once we have the values of $\pi$
+
+```{r}
+N <- 1e5
+I0 <- 2e4
+D0 <- 176
+d0 <- 322
+p_val <- param_val(I0, D0, d0, N)
+dynamics_dfs <- map(pi_values, sid_dyn,
+                    N = N, I0 = I0, D0 = D0,
+                    beta = p_val[["beta"]],
+                    sigma = 0,
+                    delta = p_val[["delta"]],
+                    alpha = p_val[["alpha"]], times = seq2(0, 50))
+```
+
+```{r}
+plot(NA, xlim = c(0, 50), ylim = c(0, 350))
+walk(dynamics_dfs, ~ with(.x, lines(time, I * p_val[["delta"]], col = adjustcolor(4, .05))))
+```
+
+```{r}
+simulations <- function(
+    tau = .95,
+    pd = 20,
+    times = seq2(0, 50),
+    N = 1e5, I0 = 2e4, D0 = 176, d0 = 322,
+    Xv  = 15,             hv = 4,
+    Xf  = 200,  Yf = .15, hf = 7,
+    Xmp = .875, Ym = 1,   hm = 50,
+    Xe  = 10,   Ye = 1,   he = 1,
+    by = pd / (le - 1), le = 512,
+    n = 1000) {
+  p_val <- param_val(I0, D0, d0, N)
+  pi_value(tau, pd, Xv, hv, Xf, Yf, hf, Xmp, Ym, hm, Xe, Ye, he, by, le, n) |> 
+    map(sid_dyn, N = N, I0 = I0, D0 = D0, beta = p_val[["beta"]], sigma = 0,
+        delta = p_val[["delta"]], alpha = p_val[["alpha"]], times = times)
+}
+```
+
+```{r}
+system.time(
+out <- map(c(3, 5, 10, 15, 20, 25, 30, 35, 40), ~ simulations(pd = .x))
+)
+```
+
