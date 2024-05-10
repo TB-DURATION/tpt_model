@@ -108,6 +108,18 @@ mclapply2 <- function(...) {
 }
 ```
 
+The logit function:
+
+```{r}
+logit <- function(x) log(x / (1 - x))
+```
+
+The logistic function:
+
+```{r}
+logistic <- function(x) 1 / (1 + exp(- x))
+```
+
 
 ## Prophylaxis model
 
@@ -507,7 +519,148 @@ add_legend_sterilization()
 
 ### A minimalist SID
 
-![Flow diagram of a minimalist SID model.](SIsIfD.png){width=320 #fig-tinySID}
+![Flow diagram of a minimalist SID model.](SID.png){width=320 #fig-SID}
+
+#### Dynamics
+
+$$
+\begin{align} 
+  \frac{dS}{dt} &= \gamma I + \alpha D - (1 - \pi) \beta DS \\
+  \frac{dI}{dt} &= (1 - \pi) \beta DS - (\delta + \gamma) I   \\
+  \frac{dD}{dt} &= \delta I - \alpha D
+\end{align}
+$$
+
+R code:
+
+```{r}
+sid_dyn <- function(N, I0 = 0, D0, beta, gamma, pi, delta, alpha, times) {
+  ode2(c(S = N - I0 - D0, I = I0, D = D0),
+       times,
+       function(time, state, pars) {
+         with(as.list(c(state, pars)), {
+           infection <- (1 - pi) * beta * D * S
+           dS  <- gamma * I + alpha * D - infection
+           dI  <- infection - (delta + gamma) * I
+           dD  <- delta * I - alpha * D
+           list(c(dS, dI, dD))
+         })
+       },
+       c(beta = beta, gamma = gamma, pi = pi, delta = delta, alpha = alpha))
+}
+```
+
+#### Equilibrium
+
+$$
+\begin{align} 
+  S^* &= N - I^* - D^*             \\
+  I^* &= \frac{\alpha}{\delta} D^* \\
+  D^* &= \frac{\delta}{\alpha + \delta} N -
+         \frac{\alpha}{\alpha + \delta} \frac{\delta + \gamma}{(1 - \pi)\beta}
+\end{align}
+$$
+
+R code:
+
+```{r}
+sid_equ <- function(N, beta, gamma, pi, delta, alpha) {
+  Dstar <- delta * N / (alpha + delta) - alpha * (delta + gamma) /
+           ((alpha + delta) * (1 - pi) * beta)
+  Istar <- alpha * Dstar / delta
+  c(S = N - Istar - Dstar, I = Istar, D = Dstar)
+}
+```
+
+A function that plots the dynamics and equilibrium values of the infection prevalence
+and the disease incidence and prevalence:
+
+```{r}
+plot_dyn_equ <- function(
+    N     = 1e5,
+    D0    = 350,
+    beta  = .000001,
+    gamma = 0,
+    pi    = 0,
+    delta = .0001,
+    alpha = 1 / 70,
+    times = seq2(0, 25000)) {
+  sims <- sid_dyn(N = N, I0 = 0, D0 = D0, beta = beta, gamma = gamma, pi = pi,
+                  delta = delta, alpha = alpha, times = times)
+
+  equs <- sid_equ(N = N, beta = beta, gamma = gamma, pi = pi,
+                  delta = delta, alpha = alpha)
+  
+  plotl2 <- function(...) plotl(..., xlab = "time (year)")
+  
+  opar <- par(mfrow = c(1, 3), cex = 1, plt = c(.25, .95, .25, .9))
+  with(sims, {
+    plotl2(time, I, col = 2, ylab = "infection prevalence")
+    abline(h = equs["I"], col = 2)
+    plotl2(time, D, col = 3, ylab = "disease prevalence")
+    abline(h = equs["D"], col = 3)
+    plotl2(time, delta * I, col = 4, ylab = "yearly disease incidence")
+    abline(h = delta * equs["I"], col = 4)
+  })
+  par(opar)
+}
+```
+
+Let's do some verification:
+
+```{r fig.height = 2.7}
+plot_dyn_equ()
+```
+
+
+#### Calibration
+
+In absence of TPT (i.e. $\pi = 0$), let's further assume that $\gamma = 0$. Let's call
+$d$ the yearly disease incidence. Then,
+
+$$
+\begin{align} 
+  \delta &= \frac{d^*}{I^*}             \\
+  \alpha &= \frac{D^*}{d^*}   \\
+  \beta  &= \frac{N}{\alpha} - \frac{\alpha + \delta}{\alpha \delta} D^*
+\end{align}
+$$
+
+Corresponding R code:
+
+```{r}
+param_val <- function(inf_prev, dis_prev, dis_incd, N = 1e5) {
+  delta <- dis_incd / inf_prev
+  alpha <- dis_incd / dis_prev
+  c(alpha = alpha,
+    beta  = alpha * delta / (delta * N - (alpha + delta) * dis_prev),
+    delta = delta)
+}
+```
+
+In Vietnam:
+
+* prevalence of infection: somewhere between 10 and 30% of the population?
+* prevalence of disease: 176 / 100,000
+* yearly incidence of disease: 322 / 100,000
+
+```{r}
+(p_val <- param_val(2e4, 176, 322))
+```
+
+Let's see:
+
+```{r fig.height = 2.7}
+plot_dyn_equ(D0    = 176,
+             beta  = p_val[["beta"]],
+             delta = p_val[["delta"]],
+             alpha = p_val[["alpha"]],
+             times = seq2(0, 3000))
+```
+
+### A two-speed SIID
+
+![Flow diagram of a minimalist SID model.](SIsIfD.png){width=320 #fig-SIID}
 
 #### Dynamics
 
@@ -546,36 +699,43 @@ sid_dyn <- function(N = 1e5, Is0 = 0, If0 = 0, D0,
 
 $$
 \begin{align} 
-  S^*   &= \frac{(\gamma_f + \delta_f)(\gamma_s + \delta_s)}
-                {(1 - p) \gamma_f \delta_s +
-                 (1 - \pi) p \gamma_s \delta_f +
-                 (1 - p \pi) \delta_f \delta_s} \frac{\alpha}{\beta}                  \\
-  I_s^* &=  \frac{(1 - p) \beta}{\gamma_s + \delta_s} D^* S^*                         \\
-  I_f^* &=  \frac{(1 - \pi) p \beta}{\gamma_f + \delta_f} D^* S^*                     \\
-  D^*   &= \frac{N - S^*}
-                {1 + (1 - p \beta S^*) / (\gamma_s + \delta_s) +
-                     ([1 - \pi] p \beta S^*) / (\gamma_f + \delta_f)}
+  A     &= (\alpha\delta_f + [1 + \delta_s]\gamma_f)[1 - p] +
+           (\alpha\delta_s + [\alpha + \delta_f]\gamma_s)[1 - \pi]p + 
+           [1 - p\pi]\delta_s\delta_f                                                 \\
+  D^*   &= \frac{[1 - p]\delta_s\gamma_f +
+                 [1 - \pi]p\gamma_s\delta_f +
+                 [1 - p\pi]\delta_s\delta_f} {A} N -
+           \frac{\delta_s\gamma_f + \gamma_s\delta_f + \delta_s\delta_f}{A}
+           \frac{\alpha}{\beta}                                                       \\
+  I_f^* &= \frac{(N - [\alpha / \delta_s + 1]D^*)(1 - \pi)p\beta D^*}
+                {\gamma_f + \delta_f + (1 - \delta_f / \delta_s)(1 - \pi)p\beta D^*}  \\
+  I_s^* &= \frac{\alpha D^* - \delta_f I_f^*}{\delta_s}                               \\
+  S^*   &= N - I_s^* - I_f^* - D^*  
 \end{align}
 $$
+
 
 R code:
 
 ```{r}
 sid_equ <- function(N = 1e5, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
-  S <- (gammaf + deltaf) * (gammas + deltas) * alpha / 
-    (((1 - p) * gammaf * deltas +
-        (1 - pi) * p * gammas * deltaf +
-        (1 - p * pi) * deltaf * deltas) * beta)
-  D <- (N - S) /
-    (1 + (1 - p * beta * S) / (gammas + deltas) +
-       ((1 - pi) * p * beta * S) / (gammaf + deltaf))
-  betaDS <- beta * D * S
-  c(S  = S,
-    Is = (1 - p) * betaDS / (gammas + detlas),
-    If = (1 - pi) * p * betaDS / (gammaf + deltaf),
+  A  <- (alpha * deltaf + (1 + deltas) * gammaf) * (1 - p) +
+        (alpha * deltas + (alpha + deltaf) * gammas) * (1 - pi) * p + 
+        (1 - p * pi) * deltas * deltaf
+  D  <- (((1 - p) * deltas * gammaf +
+          (1 - pi) * p * gammas * deltaf +
+          (1 - p * pi) * deltas * deltaf) * N - 
+         (deltas * gammaf + gammas * deltaf + deltas * deltaf) * alpha / beta) / A
+  If  <- (N - (alpha / deltas + 1) * D) * (1 - pi) * p * beta * D / 
+         (gammaf + deltaf + (1 - deltaf / deltas) * (1 - pi) * p * beta * D)
+  Is  <- (alpha * D - deltaf * If) / deltas
+  c(S  = N - Is - If - D,
+    Is = Is,
+    If = If,
     D  = D)
 }
 ```
+
 
 A function that plots the dynamics and equilibrium values of the infection prevalence
 and the disease incidence and prevalence:
@@ -591,10 +751,11 @@ plot_dyn_equ <- function(
     beta = 1e-6,
     gammas = 0,
     gammaf = 0,
-    deltas = 0,
+    deltas = 1e-6,
     deltaf = 1e-4,
     alpha = 1 / 70,
-    times = seq2(0, 25000)) {
+    times = seq2(0, 1000000)) {
+  
   sims <- sid_dyn(N, Is0, If0, D0,
                   pi, p, beta, gammas, gammaf, deltas, deltaf, alpha, times)
 
@@ -604,15 +765,148 @@ plot_dyn_equ <- function(
   
   opar <- par(mfrow = c(1, 4)) #, cex = 1, plt = c(.25, .95, .25, .9))
   with(sims, {
-    plotl2(time, Is, col = 2, ylab = "infection prevalence")
-    abline(h = equs["Is"], col = 2)
-    plotl2(time, If, col = 3, ylab = "infection prevalence")
-    abline(h = equs["If"], col = 3)
-    plotl2(time, D, col = 3, ylab = "disease prevalence")
-    abline(h = equs["D"], col = 3)
-    plotl2(time, deltas * Is + deltaf * If, col = 4, ylab = "yearly disease incidence")
-    abline(h = deltas * equs["Is"] + deltaf * equs["If"], col = 4)
+    incidence_dyn <- deltas * Is + deltaf * If
+    incidence_equ <- deltas * equs["Is"] + deltaf * equs["If"]
+    
+    plotl2(time, Is + If, col = 1, ylab = "infection prevalence")
+    abline(h = equs["Is"] + equs["If"], col = 1)
+    
+    plotl2(time, D,  col = 2, ylab = "disease prevalence")
+    abline(h = equs["D"], col = 2)
+    
+    plotl2(time, incidence_dyn, col = 3, ylab = "yearly disease incidence")
+    abline(h = incidence_equ, col = 3)
+    
+    plotl2(time, deltaf * If / incidence_dyn, col = 4,
+           ylab = "proportion of fast infections")
+    abline(h = deltaf * equs["If"] / incidence_equ, col = 4)
   })
   par(opar)
 }
+
+plot_dyn_equ()
 ```
+
+
+#### Calibration
+
+When $\pi = 0$:
+
+$$
+\begin{align} 
+  D^*    &= \frac{
+  ([\gamma_f + \delta_f]\delta_s + [\gamma_s \delta_f - \delta_s \gamma_f]p)\beta N -
+  (\gamma_s \delta_f + [\gamma_f + \delta_f]\delta_s)\alpha}{
+  (\alpha + \delta_s)\delta_f + (1 - p)(1 + \delta_s)\gamma_f + ([\delta_f + \alpha]\gamma_s - [\delta_f - \delta_s]\alpha)p}\frac{1}{\beta}         \\
+I^* &= \frac{(N - D^*)(\delta_f - \delta_s)p\beta - (\gamma_f + \delta_f)\alpha}
+            {(\delta_f - \delta_s)p\beta D^* - (\gamma_f + \delta_f)\delta_s}D^* \\
+d_f^* &= \frac{(\delta_s N - (\alpha + \delta_s)D^*)\delta_f p\beta D^*}
+              {(\gamma_f + \delta_f)\delta_s - (\delta_f - \delta_s)p\beta D^*} \\
+d_s^* &= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\delta_f}
+                              {(\delta_f - \delta_s)p\beta D^* - (\gamma_f + \delta_f)\delta_s} \right) D^*
+\end{align}
+$$
+
+In R:
+
+```{r}
+sid_equ2 <- function(N = 1e5, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
+  D <- (((gammaf + deltaf) * deltas +
+           (gammas * deltaf - deltas * gammaf) * p) * beta * N -
+          (gammas * deltaf + (gammaf + deltaf) * deltas) * alpha) /
+    (((alpha + deltas) * deltaf + (1 - p) * (1 + deltas) * gammaf +
+        ((deltaf + alpha) * gammas - (deltaf - deltas) * alpha) * p) * beta)
+  
+  c(D = D,
+    I = ((N - D) * (deltaf - deltas) * p * beta - (gammaf + deltaf) * alpha) * D /
+      ((deltaf - deltas) * p * beta * D - (gammaf + deltaf) * deltas),
+    df = (deltas * N - (alpha + deltas) * D) * deltaf * p * beta * D / 
+      ((gammaf + deltaf) * deltas - (deltaf - deltas) * p * beta * D),
+    ds = D * (alpha + (deltas * N - (alpha + deltas) * D) * p * beta * deltaf /
+                ((deltaf - deltas) * p * beta * D - (gammaf + deltaf) * deltas))
+    )
+}
+```
+
+```{r}
+sid_equ2(N = 1e5, p = 1, beta = .00001, gammas = 1 / 70, gammaf = 0, deltas = 1 / 50, deltaf = 1 / 5, alpha = 1 / 70)
+```
+
+
+Verification:
+
+```{r}
+plot_dyn_equ2 <- function(
+    N = 1e5,
+    Is0 = 0,
+    If0 = 0,
+    D0 = 350,
+    pi = 0,
+    p = .9,
+    beta = 1e-6,
+    gammas = 0,
+    gammaf = 0,
+    deltas = 1e-6,
+    deltaf = 1e-4,
+    alpha = 1 / 70,
+    times = seq2(0, 1000000)) {
+  
+  sims <- sid_dyn(N, Is0, If0, D0,
+                  pi, p, beta, gammas, gammaf, deltas, deltaf, alpha, times)
+
+  equs <- sid_equ2(N, p, beta, gammas, gammaf, deltas, deltaf, alpha)
+
+  plotl2 <- function(...) plotl(..., xlab = "time (year)")
+  
+  opar <- par(mfrow = c(1, 4)) #, cex = 1, plt = c(.25, .95, .25, .9))
+  with(sims, {
+    plotl2(time, Is + If, col = 1, ylab = "infection prevalence")
+    abline(h = equs["I"], col = 1)
+    
+    plotl2(time, D,  col = 2, ylab = "disease prevalence")
+    abline(h = equs["D"], col = 2)
+    
+    plotl2(time, deltaf * If, col = 3, ylab = "yearly fast disease incidence")
+    abline(h = equs["df"], col = 3)
+
+    plotl2(time, deltas * Is, col = 4, ylab = "yearly slow disease incidence")
+    abline(h = equs["ds"], col = 4)
+  })
+  par(opar)
+}
+
+plot_dyn_equ2()
+```
+
+```{r}
+ss <- function(p, beta, gammas, gammaf, deltas, deltaf, alpha, D, I, df, ds) {
+  equ <- list(beta = beta, alpha = alpha,
+              gammas = gammas, gammaf = gammaf,
+              deltas = deltas, deltaf = deltaf) |> 
+    map(exp) |> 
+    c(p = logistic(p), N = 1e5) %>% 
+    do.call(sid_equ2, .)
+  (D - equ[["D"]])^2 + (I - equ[["I"]])^2 + (df - equ[["df"]])^2 + (ds - equ[["ds"]])^2
+}
+```
+
+```{r}
+list(beta = 1e-4, alpha = 1 / 70, gammas = 1 / 70, gammaf = 1 / 70,
+     deltas = 1 / 10, deltaf = 1 / 2) |> 
+  map(log) |> 
+  c(list(p = logit(.9), D = 300, I = 10000, df = 270, ds = 30)) %>%
+  do.call(ss, .)
+```
+
+```{r}
+ss(-54.3664224, -15.5551976, -11.2938616, 40.0465960, -2.3025851, -.6931472, -4.2484952,
+   D = 300, I = 10000, df = 270, ds = 30)
+```
+
+```{r}
+mle2(ss,
+     as.list(c(p = logit(.9), log(c(beta = 1e-4, gammas = 1 / 70, gammaf = 1 / 70)))),
+     fixed = as.list(log(c(alpha = 1 / 70, deltas = 1 / 10, deltaf = 1 / 2))),
+     data = list(D = 300, I = 10000, df = 270, ds = 30))
+```
+
