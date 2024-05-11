@@ -676,7 +676,7 @@ $$
 with $N = S + I_s + I_f + D$. R code:
 
 ```{r}
-sid_dyn <- function(N = 1e5, Is0 = 0, If0 = 0, D0,
+siid_dyn <- function(N = 1e5, Is0 = 0, If0 = 0, D0,
                     pi, p, beta, gammas, gammaf, deltas, deltaf, alpha, times) {
   ode2(c(S = N - Is0 - If0 - D0, Is = Is0, If = If0, D = D0),
        times,
@@ -718,7 +718,7 @@ $$
 R code:
 
 ```{r}
-sid_equ <- function(N = 1e5, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
+siid_equ <- function(N = 1e5, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
   A  <- (alpha * deltaf + (1 + deltas) * gammaf) * (1 - p) +
         (alpha * deltas + (alpha + deltaf) * gammas) * (1 - pi) * p + 
         (1 - p * pi) * deltas * deltaf
@@ -741,7 +741,7 @@ A function that plots the dynamics and equilibrium values of the infection preva
 and the disease incidence and prevalence:
 
 ```{r}
-plot_dyn_equ <- function(
+plot_siid_dyn_equ <- function(
     N = 1e5,
     Is0 = 0,
     If0 = 0,
@@ -756,10 +756,10 @@ plot_dyn_equ <- function(
     alpha = 1 / 70,
     times = seq2(0, 1000000)) {
   
-  sims <- sid_dyn(N, Is0, If0, D0,
+  sims <- siid_dyn(N, Is0, If0, D0,
                   pi, p, beta, gammas, gammaf, deltas, deltaf, alpha, times)
 
-  equs <- sid_equ(N, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha)
+  equs <- siid_equ(N, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha)
   
   plotl2 <- function(...) plotl(..., xlab = "time (year)")
   
@@ -783,9 +783,14 @@ plot_dyn_equ <- function(
   })
   par(opar)
 }
-
-plot_dyn_equ()
 ```
+
+Let's see:
+
+```{r}
+plot_siid_dyn_equ()
+```
+
 
 Let's verify that we get the same result as the SID when $p = 1$:
 
@@ -813,7 +818,7 @@ $$
 In R:
 
 ```{r}
-sid_equ2 <- function(N = 1e5, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
+siid_equ2 <- function(N = 1e5, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
   D <- (((gammaf + deltaf) * deltas +
            (gammas * deltaf - deltas * gammaf) * p) * beta * N -
           (gammas * deltaf + (gammaf + deltaf) * deltas) * alpha) /
@@ -832,14 +837,14 @@ sid_equ2 <- function(N = 1e5, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
 ```
 
 ```{r}
-sid_equ2(N = 1e5, p = 1, beta = .00001, gammas = 1 / 70, gammaf = 0, deltas = 1 / 50, deltaf = 1 / 5, alpha = 1 / 70)
+siid_equ2(N = 1e5, p = 1, beta = .00001, gammas = 1 / 70, gammaf = 0, deltas = 1 / 50, deltaf = 1 / 5, alpha = 1 / 70)
 ```
 
 
 Verification:
 
 ```{r}
-plot_dyn_equ2 <- function(
+plot_siid_dyn_equ2 <- function(
     N = 1e5,
     Is0 = 0,
     If0 = 0,
@@ -854,10 +859,10 @@ plot_dyn_equ2 <- function(
     alpha = 1 / 70,
     times = seq2(0, 1000000)) {
   
-  sims <- sid_dyn(N, Is0, If0, D0,
+  sims <- siid_dyn(N, Is0, If0, D0,
                   pi, p, beta, gammas, gammaf, deltas, deltaf, alpha, times)
 
-  equs <- sid_equ2(N, p, beta, gammas, gammaf, deltas, deltaf, alpha)
+  equs <- siid_equ2(N, p, beta, gammas, gammaf, deltas, deltaf, alpha)
 
   plotl2 <- function(...) plotl(..., xlab = "time (year)")
   
@@ -877,8 +882,10 @@ plot_dyn_equ2 <- function(
   })
   par(opar)
 }
+```
 
-plot_dyn_equ2()
+```{r}
+plot_siid_dyn_equ2()
 ```
 
 ```{r}
@@ -888,7 +895,7 @@ ss <- function(p, beta, gammas, gammaf, deltas, deltaf, alpha, D, I, df, ds) {
               deltas = deltas, deltaf = deltaf) |> 
     map(exp) |> 
     c(p = logistic(p), N = 1e5) %>% 
-    do.call(sid_equ2, .)
+    do.call(siid_equ2, .)
   (D - equ[["D"]])^2 + (I - equ[["I"]])^2 + (df - equ[["df"]])^2 + (ds - equ[["ds"]])^2
 }
 ```
