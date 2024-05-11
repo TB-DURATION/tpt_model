@@ -576,7 +576,7 @@ A function that plots the dynamics and equilibrium values of the infection preva
 and the disease incidence and prevalence:
 
 ```{r}
-plot_dyn_equ <- function(
+plot_sid_dyn_equ <- function(
     N     = 1e5,
     D0    = 350,
     beta  = .000001,
@@ -609,7 +609,7 @@ plot_dyn_equ <- function(
 Let's do some verification:
 
 ```{r fig.height = 2.7}
-plot_dyn_equ()
+plot_sid_dyn_equ()
 ```
 
 
@@ -651,7 +651,7 @@ In Vietnam:
 Let's see:
 
 ```{r fig.height = 2.7}
-plot_dyn_equ(D0    = 176,
+plot_sid_dyn_equ(D0    = 176,
              beta  = p_val[["beta"]],
              delta = p_val[["delta"]],
              alpha = p_val[["alpha"]],
@@ -786,6 +786,9 @@ plot_dyn_equ <- function(
 
 plot_dyn_equ()
 ```
+
+Let's verify that we get the same result as the SID when $p = 1$:
+
 
 
 #### Calibration
