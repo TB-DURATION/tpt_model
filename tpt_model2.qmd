@@ -714,7 +714,6 @@ $$
 \end{align}
 $$
 
-
 R code:
 
 ```{r}
@@ -735,7 +734,6 @@ siid_equ <- function(N = 1e5, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha
     D  = D)
 }
 ```
-
 
 A function that plots the dynamics and equilibrium values of the infection prevalence
 and the disease incidence and prevalence:
@@ -791,10 +789,19 @@ Let's see:
 plot_siid_dyn_equ()
 ```
 
-
 Let's verify that we get the same result as the SID when $p = 1$:
 
-
+```{r}
+N <- 1e5
+beta <- .000001
+gamma <- gammas <- gammaf <- 0
+pi <- 0
+delta <- deltas <- deltaf <- .0001
+alpha <- 1 / 70
+p <- 1
+sid_equ(N, beta, gamma, pi, delta, alpha)
+siid_equ(N, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha)
+```
 
 #### Calibration
 
@@ -814,7 +821,6 @@ d_s^* &= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\delt
                               {(\delta_f - \delta_s)p\beta D^* - (\gamma_f + \delta_f)\delta_s} \right) D^*
 \end{align}
 $$
-
 In R:
 
 ```{r}
@@ -839,7 +845,6 @@ siid_equ2 <- function(N = 1e5, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
 ```{r}
 siid_equ2(N = 1e5, p = 1, beta = .00001, gammas = 1 / 70, gammaf = 0, deltas = 1 / 50, deltaf = 1 / 5, alpha = 1 / 70)
 ```
-
 
 Verification:
 
@@ -887,6 +892,82 @@ plot_siid_dyn_equ2 <- function(
 ```{r}
 plot_siid_dyn_equ2()
 ```
+
+If $\gamma_s = \gamma_f = 0$, then we have:
+
+$$
+\begin{align} 
+  D^*    &= \frac{(\beta N - \alpha)\delta_s\delta_f}
+                 {(\alpha + \delta_s)\delta_f - (\delta_f - \delta_s)\alpha p\beta}   \\
+  I^* &= \frac{(N - D^*)(\delta_f - \delta_s)p\beta - \delta_f\alpha}
+            {(\delta_f - \delta_s)p\beta D^* - \delta_f\delta_s}D^*                   \\
+d_f^* &= \frac{(\delta_s N - (\alpha + \delta_s)D^*)\delta_f p\beta D^*}
+              {\delta_f\delta_s - (\delta_f - \delta_s)p\beta D^*} \\
+d_s^* &= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\delta_f}
+                              {(\delta_f - \delta_s)p\beta D^* - \delta_f\delta_s} \right) D^*
+\end{align}
+$$
+
+$$
+\begin{align}
+  d^*      &= d_s^* + d_f^*                                                           \\
+  B        &= {d_f^*}^2 - (\delta_fI^* - d_s^*)d_f^*                                  \\
+  \alpha   &= \frac{d^*}{D^*}                                                         \\
+  \delta_s &= \frac{\delta_fd_s^*}{\delta_f I^* - d_f^*}                              \\
+  \beta    &= \frac{(D^*S^* - d^*)d^*d_f^* +
+                    [(d_s^*N - d^*I^*)d^* + 
+                     (I^*S^*-d_s^*)d^*D^* + 
+                     (d_s^*N - [d_f^* + 2d_s^*]I^*){D^*}^2 - 
+                     d_s^*{D^*}^3] \delta_f}{\delta_f d_s^*S^*D^*N}                   \\
+  p        &= \frac{d_f^*d_s^*\delta_f N}
+                   {(B + (N - I^*)\delta_f d_s^*)d + 
+                    ((I^*N - d_s^* - {I^*}^2)\delta_f - (N - I^*)d_f^*)d^*D^* +
+                    (B - (N - 2I^*)\delta_f d_s^*){D^*}^2 -
+                    \delta_f d_s^*{D^*}^3                                             
+                   }
+\end{align}
+$$
+In R:
+```{r}
+siid_param_val <- function(I, D, ds, df, N, deltaf) {
+  d     <- ds + df
+  S     <- N - I - D
+  B     <- df^2 - (deltaf * I - ds) * df
+  c(alpha  = d / D,
+    deltas = deltaf * ds / (deltaf * I - df),
+    beta   = (
+               (D * S - d) * d * df + 
+               (
+                 (ds * N - d * I) * d + 
+                 (I * S - ds) * d * D +
+                 (ds * N - (df + 2 * ds) * I) * D^2 -
+                 ds * D^3
+               ) * deltaf
+             ) / 
+             (
+               deltaf * ds * S * D * N
+             ),
+    p      = (df *ds * deltaf * N) / 
+             (
+               (B + (N - I) * deltaf * ds) * d +
+               ((I * N - ds - I^2) * deltaf - (N - I) * df) * d * D +
+               (B - (N - 2 * I) * deltaf * ds) * D^2 -
+               deltaf * ds * D^3   
+             )
+  )
+}
+```
+
+```{r}
+x <- .9
+di <- 322
+df <- round(x * 322)
+siid_param_val(I = 1e4, D = 176, ds = di - df, df = df, N = 1e5, deltaf = 1 / 2)
+siid_param_val(I = 3e4, D = 176, ds = di - df, df = df, N = 1e5, deltaf = 1 / 2)
+```
+
+
+
 
 ```{r}
 ss <- function(p, beta, gammas, gammaf, deltas, deltaf, alpha, D, I, df, ds) {
