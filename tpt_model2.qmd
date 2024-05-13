@@ -177,33 +177,18 @@ $$
 where $(Y_\upsilon, Z_\upsilon) \in [0,1]^2$. In R:
 
 ```{r}
-uptake <- function(pd, Xv, hv) {
-  X2h <- Xv ^ hv
-  X2h / (X2h + pd ^ hv)
+uptake <- function(d, Xv, Yv, Zv, hv) {
+  Zv - hill(d, Xv, Yv, hv)
 }
-```
-
-```{r}
-uptake2 <- function(d, X, Y, Z, h) {
-  Z - hill(d, X, Y, h)
-}
-```
-
-An example:
-
-```{r}
-ds <- seq2(0, 30)
-plot2(ds, uptake(ds, 15, 4), ylim = 0:1,
-      xlab = "duration of treatment (days)", ylab = "uptake probability")
 ```
 
 Two examples:
 
 ```{r}
 ds <- seq2(0, 30)
-plot2(ds, uptake2(ds, 15, 1, 1, 4), ylim = 0:1,
+plot2(ds, uptake(ds, 15, 1, 1, 4), ylim = 0:1,
       xlab = "duration of treatment (days)", ylab = "uptake probability")
-lines2(ds, uptake2(ds, 10, .7, .9, 1.75), col = 3)
+lines2(ds, uptake(ds, 10, .7, .9, 1.75), col = 3)
 ```
 
 
@@ -460,7 +445,7 @@ pi_value <- function(
     tau = .99,
     pd = 10,
     
-    Xv  = 15, hv = 4,
+    Xv  = 15,   Yv = 1,   hv = 4, Zv = 1,
     Xf  = 200,  Yf = .15, hf = 7,
     Xmp = .875, Ym = 1,   hm = 50,
     Xe  = 10,   Ye = 1,   he = 1,
@@ -469,7 +454,7 @@ pi_value <- function(
     n = 1000) {
   
   tau *
-    uptake(pd, Xv, hv) *
+    uptake(pd, Xv, Yv, Zv, hv) *
     hill(draw_durations(pd, Xf, Yf, hf, Xmp, Ym,  hm, by, le, n), Xe, Ye, he)
 }
 ```
@@ -502,7 +487,7 @@ add_legend_sterilization <- function(...) {
 add_legend_sterilization()
 ```
 
-A function that plot a quantile distribution along the $y$-axis:
+A function that plots a quantile distribution along the $y$-axis:
 
 ```{r}
 quantplot <- function(x, y, probs = c(.025, seq(.05, .95, .05), .975),
@@ -528,8 +513,8 @@ This gives:
 
 ```{r}
 plot(NA, xlim = c(0, 45), ylim = 0:1,
-     xlab = "proposed duration of treatment (days)",
-     ylab = "proportion of new infections sterilized")
+     xlab = "proposed duration d of treatment (days)",
+     ylab = expression(paste("proportion ", pi, " of new infections sterilized")))
 
 walk2(out,
       seq_along(out),
@@ -666,21 +651,21 @@ sid_param_val <- function(inf_prev, dis_prev, dis_incd, N = 1e5) {
 In Vietnam:
 
 * prevalence of infection: somewhere between 10 and 30% of the population?
-* prevalence of disease: 176 / 100,000
-* yearly incidence of disease: 322 / 100,000
+* prevalence of disease: 322 / 100,000
+* yearly incidence of disease: 176 / 100,000
 
 ```{r}
-(sid_p_val <- sid_param_val(2e4, 176, 322))
+(sid_p_val <- sid_param_val(2e4, 322, 176))
 ```
 
 Let's see:
 
 ```{r fig.height = 2.7}
-plot_sid_dyn_equ(D0    = 176,
+plot_sid_dyn_equ(D0    = 322,
              beta  = sid_p_val[["beta"]],
              delta = sid_p_val[["delta"]],
              alpha = sid_p_val[["alpha"]],
-             times = seq2(0, 3000))
+             times = seq2(0, 6000))
 ```
 
 ### A two-speed SIID
@@ -1062,6 +1047,6 @@ plot(NA, xlim = range(times), ylim = c(0, di),
 
 seq(0, 1, .1) |> 
   map(pi_effect) |> 
-  walk(~ with(.x, lines(time, d)))
+  walk(~ with(.x, lines2(time, d, col = 4)))
 ```
 
