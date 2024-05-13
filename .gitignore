@@ -3,4 +3,6 @@
 .RData
 .Ruserdata
 tpt_model_cache/
+tpt_model2_cache/
 .DS_Store
+tpt_model2_backup_cache/
