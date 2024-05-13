@@ -97,6 +97,12 @@ plot3 <- function(...) plot2(..., xlab = "actual duration of treatment (days)")
 
 legend2 <- function(...) legend(..., lty = 1, lwd = lwd_val, bty = "n")
 
+legend3 <- function(x, y, legend, ...) {
+  tmp <- legend2(x, y, legend = rep(" ", length(legend)),
+                 text.width = max(strwidth(legend)), xjust = 1, yjust = 1, ...)
+  text(tmp$rect$left + tmp$rect$w, tmp$text$y, legend, pos = 2)
+}
+
 mclapply2 <- function(...) {
   parallel::mclapply(..., mc.cores = parallel::detectCores() - 1)
 }
@@ -124,10 +130,10 @@ $$
 y = Y\frac{x^h}{X^h + x^h}
 $$
 
-where $Y$ is the maximum value that $y$ can take, $X$ is the value of $x$ at
-which $y$ reaches half of its maximum value $Y$ and $h$ is the Hill coefficient
-that controls the shape of the relationship with S-shape for $0 < h < 1$ and a
-simple saturating shape when $h \ge 1$.
+where $Y \in \mathbb{R}^+$ is the maximum value that $y$ can take, $X \in \mathbb{R}^+$
+is the value of $x$ at which $y$ reaches half of its maximum value $Y$ and
+$h \in \mathbb{R}^+$ is the Hill coefficient that controls the shape of the relationship
+with S-shape for $0 < h < 1$ and a simple saturating shape when $h \ge 1$.
 
 ```{r}
 hill <- function(x, X, Y, h) {
@@ -138,18 +144,24 @@ hill <- function(x, X, Y, h) {
 
 Let's illustrate the properties of this equation:
 
-```{r}
+```{r fig.height = 6}
 xs <- seq2(0, 40)
 X <- 15
-Y <- .8
+Y <- 1.4
 
-plot(NA, xlim = c(0, max(xs)), ylim = c(0, Y), xlab = "x values", ylab = "y values")
+plot(NA, xlim = c(0, max(xs)), ylim = c(0, 1.5), xlab = "x values", ylab = "y values")
 abline2(v = X, col = "grey")
 abline2(h = Y, col = "grey")
 
 hs <- exp(seq(-3, 3))
 cols <- rev(RColorBrewer::brewer.pal(n = length(hs), "Spectral"))
 walk2(hs, cols, ~ lines2(xs, hill(xs, X, Y, h = .x), col = .y))
+
+legend3("bottomright", col = cols, title = "Hill coefficient h",
+        legend = formatC(round(hs, 2), digits = 2, format = "f"))
+
+axis(1, X, "X")
+axis(2, Y, "Y", las = 1)
 ```
 
 ### Treatment uptake
@@ -158,15 +170,22 @@ We can model the probability $\upsilon(d)$ of treatment uptake as a function of 
 proposed treatment duration $d$ using a Hill equation as so:
 
 $$
-\upsilon(d) = \frac{X_\upsilon^{h_\upsilon}}{X_\upsilon^{h_\upsilon} + d^{h_\upsilon}}
+\upsilon(d | X_\upsilon, Y_\upsilon, Z_\upsilon, h_\upsilon) =
+  Z_\upsilon - Y_\upsilon\frac{d^{h_\upsilon}}{X^{h_\upsilon} + d^{h_\upsilon}}
 $$
 
-In R:
+where $(Y_\upsilon, Z_\upsilon) \in [0,1]^2$. In R:
 
 ```{r}
 uptake <- function(pd, Xv, hv) {
   X2h <- Xv ^ hv
   X2h / (X2h + pd ^ hv)
+}
+```
+
+```{r}
+uptake2 <- function(d, X, Y, Z, h) {
+  Z - hill(d, X, Y, h)
 }
 ```
 
@@ -178,6 +197,16 @@ plot2(ds, uptake(ds, 15, 4), ylim = 0:1,
       xlab = "duration of treatment (days)", ylab = "uptake probability")
 ```
 
+Two examples:
+
+```{r}
+ds <- seq2(0, 30)
+plot2(ds, uptake2(ds, 15, 1, 1, 4), ylim = 0:1,
+      xlab = "duration of treatment (days)", ylab = "uptake probability")
+lines2(ds, uptake2(ds, 10, .7, .9, 1.75), col = 3)
+```
+
+
 ### Treatment adherence
 
 #### Conditional dropping probability
@@ -185,8 +214,8 @@ plot2(ds, uptake(ds, 15, 4), ylim = 0:1,
 Call $p(t)$ the probability that a person who, at day $t$, has not stopped her treatment
 yet, decides to stop it. This probability could be constant and independent of the
 duration the person has been in the treatment. On the contrary, we could imagine that
-this probability could depend on the duration the person has been in the treatment. And
-this dependency could result from 2 effects:
+this probability depends on the duration the person has been in the treatment. And this
+dependency could result from 2 effects:
 
 * a **fatigue effect** whereby $p(t)$ would increase with $t$;
 * a **finish-line effect** whereby $p(t)$ would decreases nearby the end of treatment.
@@ -196,26 +225,28 @@ probability $f(t)$ increasing with time $t$ being in the treatment according to 
 equation:
 
 $$
-f(t) = Y_f\frac{t^{h_f}}{X_f^{h_f} + t^{h_f}}
+f(t|X_f, Y_f, h_f) = Y_f\frac{t^{h_f}}{X_f^{h_f} + t^{h_f}}
 $$
 
-and the finish-line effect as a decreasing mitigation weight $m(t) \in [0, 1]$ of
-$f(t)$, also modelled with a Hill equation as so:
+with $0 \leq Y_f \leq 1$. Note too here that $f(0)=0$. The finish-line effect is
+modelled as a decreasing mitigation weight $m(t) \in [0, 1]$ of $f(t)$, and it is also
+modelled with a Hill equation as so:
 
 $$
-m(t) = 1 - Y_m\frac{t^{h_m}}{X_m^{h_m} + t^{h_m}}
+m(t|X_m, Y_m, h_m) = 1 - Y_m\frac{t^{h_m}}{X_m^{h_m} + t^{h_m}}
 $$
 
-where $Y_m \leq 1$. From here the conditional probability $p(t)$ reads
+where $0 \leq Y_m \leq 1$. Note too that $m(0) = 1$. From here the conditional
+probability $p(t)$ reads
 
 $$
-p(t) = m(t) \times f(t)
+p(t|\theta_m, \theta_f) = m(t|\theta_m) \times f(t|\theta_f)
 $$
 
-Let's look at some examples:
+Let's look at some examples using the following function that plots these probabilities:
 
 ```{r}
-probabilities <- function(
+plot_probabilities <- function(
     pd = 40,                      # proposed duration of treatment
     Xf  = 25,   Yf = .8, hf = 7,  # fatigue
     Xmp = .875, Ym = 1,  hm = 50, # mitigation of fatigue
@@ -242,17 +273,18 @@ probabilities <- function(
 }
 ```
 
-Executing the function:
+Note here the `pd` parameter that is the proposed duration of the treatment. Note too
+that the $X_m$ parameter is expressed as a proportion of `pd`. Executing the function:
 
 ```{r}
-probabilities()
+plot_probabilities()
 ```
 
 Note that this model accounts for the special case where $p(t)$ is a constant
 independent of time:
 
 ```{r}
-probabilities(hf = 0, hm = 0, Ym = .05, Yf = .4)
+plot_probabilities(hf = 0, hm = 0, Ym = .05, Yf = .4)
 ```
 
 #### Duration of treatment distribution
@@ -261,14 +293,16 @@ From $p(t)$ we can express the probability that somebody stops her treatment exa
 time $t$ as
 
 $$
-P(t) = p(t)\prod_{x=0}^{{}^{-}t}(1 - p(x))^{dx}
+P(t|\theta_m, \theta_f) =
+  p(t|\theta_m, \theta_f)\prod_{x=0}^{{}^{-}t}(1 - p(x|\theta_m, \theta_f))^{dx}
 $$
 
 The density of probability of the actual duration of treatment (*aka*
 **effective duration of treatment**) can then be expressed by:
 
 $$
-\varphi(t, d) = \frac{P(t)}{\int_{0}^d P(x)dx}
+\varphi(t|d, \theta_m, \theta_f) = \frac{P(t|\theta_m, \theta_f)}
+                                        {\int_{0}^d P(x|\theta_m, \theta_f)dx}
 $$
 
 where $d$ is the **proposed duration of treatment**. Let's see this in R. First a
@@ -287,15 +321,17 @@ dropping_probability <- function(
 }
 ```
 
-This is what it gives:
+Note the parameterization that is similar to the parameterization of the
+`plot_probabilities()` function. This is what it gives:
 
 ```{r}
 dropping_probability()
 ```
 
 where the first column is the time $t$ in treatment and the second column the
-conditional probability $p(t)$ of dropping. This function is used by the following one
-to compute the probability distribution of the effective duration of treatment:
+conditional density of probability $p(t)$ of dropping. This function is used by the
+following one to compute the probability distribution of the effective duration of
+treatment:
 
 ```{r}
 effective_duration <- function(
@@ -312,7 +348,8 @@ effective_duration <- function(
 }
 ```
 
-Let's try it:
+Note again the same parameterization as for the `plot_probabilities()` and
+`dropping_probability()` functions. Let's try it:
 
 ```{r}
 with(effective_duration(), {
@@ -321,9 +358,9 @@ with(effective_duration(), {
 })
 ```
 
-A function that helps visualizing the relationship between proposed duration of
-treatment (vertical grey lines) and the distribution of the actual duration of
-treatment (in blue):
+The following function (with the same parameterization as the 3 previous ones) helps
+visualizing the relationship between the proposed duration of treatment (vertical grey
+lines) and the distribution of the actual duration of treatment (in blue):
 
 ```{r}
 explore_dropping <- function(
@@ -339,16 +376,15 @@ explore_dropping <- function(
   
   opar <- par(mfrow = 2:1, plt = c(.1, .96, .21, .93))
   
-  probabilities(tail(proposed_durations, 1),
+  plot_probabilities(tail(proposed_durations, 1),
                 Xf, Yf, hf, Xmp, Ym, hm, lwd = 4, ylim = ylim, lgnd = FALSE)
   walk(head(proposed_durations, -1),
-       ~ probabilities(.x, Xf, Yf, hf, Xmp, Ym, hm, add = TRUE))
+       ~ plot_probabilities(.x, Xf, Yf, hf, Xmp, Ym, hm, add = TRUE))
   
-  plot(NA,
-       xlim = c(0, max(proposed_durations)),
-       ylim = c(0, max(unlist(map(eds, ~ .x$y)))),
-       xlab = "effective duration of treatment (days)",
-       ylab = "probability density")
+  plot(NA, xlim = c(0, max(proposed_durations)),
+           ylim = c(0, max(unlist(map(eds, ~ .x$y)))),
+           xlab = "effective duration of treatment (days)",
+           ylab = "probability density")
   walk(eds, ~ with(.x, {
     lines2(.x$x, .x$y, col = 4)
     polygon2(x, y)
@@ -381,7 +417,7 @@ draw_durations <- function(
 Let's try it:
 
 ```{r}
-draw_durations(n = 10)
+draw_durations(n = 16)
 ```
 
 
@@ -391,23 +427,29 @@ We can assume that the treatment efficacy $\varepsilon(\phi)$ as a function of t
 actual duration $\phi$ of treatment also follows a Hill equation:
 
 $$
-\varepsilon(\phi) = Y_\varepsilon\frac{\phi^{h_\varepsilon}}{X_\varepsilon^{h_\varepsilon}
-                    + \phi^{h_\varepsilon}}
+\varepsilon(\phi|X_\varepsilon, Y_\varepsilon, h_\varepsilon) =
+  Y_\varepsilon\frac{\phi^{h_\varepsilon}}
+                    {X_\varepsilon^{h_\varepsilon} + \phi^{h_\varepsilon}}
 $$
 
-An illustration:
+Let's see 2 examples:
 
 ```{r}
 ts <- seq2(0, 30)
-plot3(ts, hill(ts, 10, 1, 1), ylim = 0:1, ylab = "treatment efficacy")
+plot3(ts, hill(ts, 5, 1, .8), ylim = 0:1, ylab = "treatment efficacy")
+lines2(ts, hill(ts, 20, 1, 5), col = 3)
+legend2("topleft", legend = c("optimistic", "pessimistic"), col = 4:3)
 ```
 
 ### Full prophylaxis
 
-The $\pi$ proportion of the epidemiological model can now be expressed as:
+The proportion $\pi$ of recent infections that can be sterilized then reads:
 
 $$
-\pi(d, \theta_\upsilon, \theta_\varepsilon) = \tau \times \upsilon(d, \theta_\upsilon) \times \varepsilon(d, \theta_\varepsilon)
+\pi(d|\tau, \theta_\upsilon, \theta_m, \theta_f, \theta_\varepsilon) =
+  \tau \times
+  \upsilon(d| \theta_\upsilon) \times
+  \varepsilon(\phi(d|\theta_m,\theta_f)| \theta_\varepsilon)
 $$
 
 where $\tau$ is the proportion of recent infections that can be identified through
@@ -432,17 +474,8 @@ pi_value <- function(
 }
 ```
 
-Let's try it:
-
-```{r include=FALSE, eval=FALSE}
-pi_value(tau = .9, pd = 10, n = 1e4, le = 1e6) |> 
-  density() |> 
-  with({
-    plot2(x, y, xlab = "proportion of new infections sterilized",
-          ylab = "density of probability", xlim = 0:1)
-    polygon2(x, y)}
-  )
-```
+Note the similar parameterization as for functions above. Let's use this function to
+look at the effect of $\tau$ on $\pi$:
 
 ```{r}
 tau_vals <- c(.2, .5, .75, .9, 1)
@@ -452,7 +485,8 @@ out1 <- tau_vals |>
   map(density)
 
 plot2(NA, xlim = 0:1, ylim = c(0, max(unlist(map(out1, extract2, "y")))),
-      xlab = "proportion of new infections sterilized", ylab = "density of probability")
+      xlab = expression(paste("proportion ", pi, " of new infections sterilized")),
+      ylab = "density of probability")
 
 walk2(out1, seq_along(tau_vals), ~ with(.x, {
   polygon2(x, y, col = .y)
@@ -462,7 +496,7 @@ walk2(out1, seq_along(tau_vals), ~ with(.x, {
 add_legend_sterilization <- function(...) {
   legend2("topright", legend = paste0(rev(100 * tau_vals), "%"),
           col = rev(seq_along(tau_vals)),
-          title = "percentage of recent infections identified")
+          title = expression(paste("perentage ", tau, " of recent infections identified")))
 }
 
 add_legend_sterilization()
@@ -1026,7 +1060,7 @@ pi_effect <- function(pi) {
 plot(NA, xlim = range(times), ylim = c(0, di),
      xlab = "year", ylab = "disease incidence (/year/100,000)")
 
-out <- seq(0, 1, .1) |> 
+seq(0, 1, .1) |> 
   map(pi_effect) |> 
   walk(~ with(.x, lines(time, d)))
 ```
