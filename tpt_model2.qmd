@@ -967,37 +967,3 @@ siid_param_val(I = 3e4, D = 176, ds = di - df, df = df, N = 1e5, deltaf = 1 / 2)
 ```
 
 
-
-
-```{r}
-ss <- function(p, beta, gammas, gammaf, deltas, deltaf, alpha, D, I, df, ds) {
-  equ <- list(beta = beta, alpha = alpha,
-              gammas = gammas, gammaf = gammaf,
-              deltas = deltas, deltaf = deltaf) |> 
-    map(exp) |> 
-    c(p = logistic(p), N = 1e5) %>% 
-    do.call(siid_equ2, .)
-  (D - equ[["D"]])^2 + (I - equ[["I"]])^2 + (df - equ[["df"]])^2 + (ds - equ[["ds"]])^2
-}
-```
-
-```{r}
-list(beta = 1e-4, alpha = 1 / 70, gammas = 1 / 70, gammaf = 1 / 70,
-     deltas = 1 / 10, deltaf = 1 / 2) |> 
-  map(log) |> 
-  c(list(p = logit(.9), D = 300, I = 10000, df = 270, ds = 30)) %>%
-  do.call(ss, .)
-```
-
-```{r}
-ss(-54.3664224, -15.5551976, -11.2938616, 40.0465960, -2.3025851, -.6931472, -4.2484952,
-   D = 300, I = 10000, df = 270, ds = 30)
-```
-
-```{r}
-mle2(ss,
-     as.list(c(p = logit(.9), log(c(beta = 1e-4, gammas = 1 / 70, gammaf = 1 / 70)))),
-     fixed = as.list(log(c(alpha = 1 / 70, deltas = 1 / 10, deltaf = 1 / 2))),
-     data = list(D = 300, I = 10000, df = 270, ds = 30))
-```
-
