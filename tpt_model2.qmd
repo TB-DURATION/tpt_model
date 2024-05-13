@@ -796,7 +796,7 @@ siid_equ(N, pi, p, beta, gammas, gammaf, deltas, deltaf, alpha)
 
 #### Calibration
 
-When $\pi = 0$:
+When $\pi = 0$, we can re-arrange the equilibrium equations so that we have:
 
 $$
 \begin{align} 
@@ -812,7 +812,10 @@ d_s^* &= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\delt
                               {(\delta_f - \delta_s)p\beta D^* - (\gamma_f + \delta_f)\delta_s} \right) D^*
 \end{align}
 $$
-In R:
+
+where $I^*$ and $D^*$ are the infection and disease prevalences and $d_f^*$ and $d_s^*$
+are the disease incidences from recent and ancient infections respectively. In R, this
+is what it looks like:
 
 ```{r}
 siid_equ2 <- function(N = 1e5, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
@@ -833,11 +836,17 @@ siid_equ2 <- function(N = 1e5, p, beta, gammas, gammaf, deltas, deltaf, alpha) {
 }
 ```
 
+Verification:
+
 ```{r}
-siid_equ2(N = 1e5, p = 1, beta = .00001, gammas = 1 / 70, gammaf = 0, deltas = 1 / 50, deltaf = 1 / 5, alpha = 1 / 70)
+siid_equ(N = 1e5, pi = 0, p = .9, beta = .00001, gammas = 1 / 70, gammaf = 0,
+         deltas = 1 / 50, deltaf = 1 / 5, alpha = 1 / 70)
+
+siid_equ2(N = 1e5, p = .9, beta = .00001, gammas = 1 / 70, gammaf = 0,
+          deltas = 1 / 50, deltaf = 1 / 5, alpha = 1 / 70)
 ```
 
-Verification:
+Another verification:
 
 ```{r}
 plot_siid_dyn_equ2 <- function(
@@ -884,14 +893,15 @@ plot_siid_dyn_equ2 <- function(
 plot_siid_dyn_equ2()
 ```
 
-If $\gamma_s = \gamma_f = 0$, then we have:
+If, additionally, $\gamma_s = \gamma_f = 0$, then the above equilibrium becomes:
 
 $$
 \begin{align} 
-  D^*    &= \frac{(\beta N - \alpha)\delta_s\delta_f}
-                 {(\alpha + \delta_s)\delta_f - (\delta_f - \delta_s)\alpha p\beta}   \\
-  I^* &= \frac{(N - D^*)(\delta_f - \delta_s)p\beta - \delta_f\alpha}
-            {(\delta_f - \delta_s)p\beta D^* - \delta_f\delta_s}D^*                   \\
+  D^*    &= \frac{
+  \delta_f\delta_s(\beta N - \alpha)}{
+  (\alpha + \delta_s)\delta_f - (\delta_f - \delta_s)\alpha p}\frac{1}{\beta}         \\
+I^* &= \frac{(N - D^*)(\delta_f - \delta_s)p\beta - \delta_f\alpha}
+            {(\delta_f - \delta_s)p\beta D^* - \delta_f\delta_s}D^* \\
 d_f^* &= \frac{(\delta_s N - (\alpha + \delta_s)D^*)\delta_f p\beta D^*}
               {\delta_f\delta_s - (\delta_f - \delta_s)p\beta D^*} \\
 d_s^* &= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\delta_f}
@@ -899,55 +909,54 @@ d_s^* &= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\delt
 \end{align}
 $$
 
+Numerical verification:
+
+```{r}
+siid_equ3 <- function(N = 1e5, p, beta, deltas, deltaf, alpha) {
+  D <- deltaf * deltas * (beta * N - alpha) / 
+       (((alpha + deltas) * deltaf - (deltaf - deltas) * alpha * p) * beta)
+  
+  c(D = D,
+    I = ((N - D) * (deltaf - deltas) * p * beta - deltaf * alpha) * D /
+        ((deltaf - deltas) * p * beta * D - deltaf * deltas),
+    df = (deltas * N - (alpha + deltas) * D) * deltaf * p * beta * D /
+        (deltaf * deltas - (deltaf - deltas) * p * beta * D),
+    ds = (alpha + (deltas * N - (alpha + deltas) * D) * p * beta * deltaf / 
+            ((deltaf - deltas) * p * beta * D - deltaf * deltas)) * D
+    )
+}
+
+siid_equ2(N = 1e5, p = .9, beta = .00001, gammas = 0, gammaf = 0, deltas = 1 / 50,
+          deltaf = 1 / 5, alpha = 1 / 70)
+
+siid_equ3(N = 1e5, p = .9, beta = .00001, deltas = 1 / 50, deltaf = 1 / 5,
+          alpha = 1 / 70)
+```
+
+Now, let's re-arrange this equilibrium to express 4 of the model's parameters values as
+a function of infection and disease prevalences as well as disease incidences:
+
 $$
 \begin{align}
-  d^*      &= d_s^* + d_f^*                                                           \\
-  B        &= {d_f^*}^2 - (\delta_fI^* - d_s^*)d_f^*                                  \\
-  \alpha   &= \frac{d^*}{D^*}                                                         \\
-  \delta_s &= \frac{\delta_fd_s^*}{\delta_f I^* - d_f^*}                              \\
-  \beta    &= \frac{(D^*S^* - d^*)d^*d_f^* +
-                    [(d_s^*N - d^*I^*)d^* + 
-                     (I^*S^*-d_s^*)d^*D^* + 
-                     (d_s^*N - [d_f^* + 2d_s^*]I^*){D^*}^2 - 
-                     d_s^*{D^*}^3] \delta_f}{\delta_f d_s^*S^*D^*N}                   \\
-  p        &= \frac{d_f^*d_s^*\delta_f N}
-                   {(B + (N - I^*)\delta_f d_s^*)d + 
-                    ((I^*N - d_s^* - {I^*}^2)\delta_f - (N - I^*)d_f^*)d^*D^* +
-                    (B - (N - 2I^*)\delta_f d_s^*){D^*}^2 -
-                    \delta_f d_s^*{D^*}^3                                             
-                   }
+  \alpha   &= \frac{d_f^* + d_s^*}   {D^*}                  \\
+  \beta    &= \frac{d_f^* + d_s^*}   {(N - I^* - D^*)D^*}   \\
+  \delta_s &= \frac{\delta_f d_s^*}{\delta_f I^* - d_f^*}  \\
+  p        &= \frac{d_f^*}          {d_f^* + d_s^*}
 \end{align}
 $$
-In R:
+
+In R it reads:
+
 ```{r}
 siid_param_val <- function(I, D, ds, df, N, deltaf) {
-  d     <- ds + df
-  S     <- N - I - D
-  B     <- df^2 - (deltaf * I - ds) * df
-  c(alpha  = d / D,
+  c(alpha  = (df + ds) / D,
+    beta   = (df + ds) / ((N - I - D) * D),
     deltas = deltaf * ds / (deltaf * I - df),
-    beta   = (
-               (D * S - d) * d * df + 
-               (
-                 (ds * N - d * I) * d + 
-                 (I * S - ds) * d * D +
-                 (ds * N - (df + 2 * ds) * I) * D^2 -
-                 ds * D^3
-               ) * deltaf
-             ) / 
-             (
-               deltaf * ds * S * D * N
-             ),
-    p      = (df *ds * deltaf * N) / 
-             (
-               (B + (N - I) * deltaf * ds) * d +
-               ((I * N - ds - I^2) * deltaf - (N - I) * df) * d * D +
-               (B - (N - 2 * I) * deltaf * ds) * D^2 -
-               deltaf * ds * D^3   
-             )
-  )
+    p      = df / (df + ds))
 }
 ```
+
+Let's look at some examples:
 
 ```{r}
 x <- .9
@@ -958,34 +967,67 @@ siid_param_val(I = 1e4, D = D, ds = di - df, df = df, N = 1e5, deltaf = 1 / 2)
 siid_param_val(I = 3e4, D = D, ds = di - df, df = df, N = 1e5, deltaf = 1 / 2)
 ```
 
+Let's do a numerical verification:
+
 ```{r}
 deltaf <- 1 / 2
 N <- 1e5
 x <- .9
 di <- 176
 D0 <- 322
+df <- x * di
 
 siid_p_val <- siid_param_val(I = 2e4, D = D0, ds = di - df, df = df, N = N,
                              deltaf = deltaf)
 
-siid_equ_val <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]],
-                         beta = siid_p_val[["beta"]], gammas = 0, gammaf = 0,
-                         deltas = siid_p_val[["deltas"]], deltaf = deltaf,
-                         alpha = siid_p_val[["alpha"]])
+a <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]], beta = siid_p_val[["beta"]],
+              gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]], deltaf = deltaf,
+              alpha = siid_p_val[["alpha"]])
 
-plot_siid_dyn_equ(
-    N = N,
-    Is0 = siid_equ_val[["Is"]],
-    If0 = siid_equ_val[["If"]],
-    D0 = siid_equ_val[["D"]],
-    pi = 0,
-    p = siid_p_val[["p"]],
-    beta = siid_p_val[["beta"]],
-    gammas = 0,
-    gammaf = 0,
-    deltas = siid_p_val[["deltas"]],
-    deltaf = 1 / 2,
-    alpha = siid_p_val[["alpha"]],
-    times = seq2(0, 1000000))
+b <- siid_equ2(N = N, p = siid_p_val[["p"]], beta = siid_p_val[["beta"]],
+               gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]], deltaf = deltaf,
+               alpha = siid_p_val[["alpha"]])
+
+a["D"]
+sum(a[c("Is", "If")])
+b["I"]
+(d <- sum(b[c("df", "ds")]))
+b[["df"]] / d
+```
+
+#### Prophylaxis
+
+```{r}
+times <- 2025 + seq2(0, 30)
+deltaf <- 1 / 2
+N <- 1e5
+I0 <- 2e4
+x <- .9
+di <- 176
+D0 <- 322
+df <- x * di
+
+siid_p_val <- siid_param_val(I = I0, D = D0, ds = di - df, df = df, N = N,
+                             deltaf = deltaf)
+
+start_val <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]], beta = siid_p_val[["beta"]],
+                      gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]],
+                      deltaf = deltaf, alpha = siid_p_val[["alpha"]])
+
+pi_effect <- function(pi) {
+  siid_dyn(N = 1e5, Is0 = start_val[["Is"]], If0 = start_val[["If"]], D0, pi,
+           p      = siid_p_val[["p"]],
+           beta   = siid_p_val[["beta"]], gammas = 0, gammaf = 0,
+           deltas = siid_p_val[["deltas"]], deltaf = deltaf,
+           alpha  = siid_p_val[["alpha"]], times) |> 
+    mutate(d = deltaf * If + siid_p_val[["deltas"]] * Is)
+}
+
+plot(NA, xlim = range(times), ylim = c(0, di),
+     xlab = "year", ylab = "disease incidence (/year/100,000)")
+
+out <- seq(0, 1, .1) |> 
+  map(pi_effect) |> 
+  walk(~ with(.x, lines(time, d)))
 ```
 
