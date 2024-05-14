@@ -481,7 +481,8 @@ walk2(out1, seq_along(tau_vals), ~ with(.x, {
 add_legend_sterilization <- function(...) {
   legend2("topright", legend = paste0(rev(100 * tau_vals), "%"),
           col = rev(seq_along(tau_vals)),
-          title = expression(paste("perentage ", tau, " of recent infections identified")))
+          title = expression(paste("perentage ", tau,
+                                   " of recent infections identified")))
 }
 
 add_legend_sterilization()
@@ -522,6 +523,119 @@ walk2(out,
                   col = adjustcolor(.y, .03)))
 
 add_legend_sterilization()
+```
+
+Looking at the way to see everything regarding prophylaxis:
+
+```{r include=FALSE, eval=FALSE}
+dashboard <- function(
+    tau = .99,
+    pd = 10,
+    
+    Xv  = 15,   Yv = 1,   hv = 4, Zv = 1,
+    Xf  = 200,  Yf = .15, hf = 7,
+    Xmp = .875, Ym = 1,   hm = 50,
+    Xe  = 10,   Ye = 1,   he = 1,
+    
+    dur_max = 40,
+    by = pd / (le - 1), le = 512,
+    n = 1000) {
+  
+# 1. treatment uptake
+  ds <- seq2(0, dur_max)
+  plot2(ds, uptake(ds, Xv, Yv, Zv, hv), ylim = 0:1,
+        xlab = "duration of treatment (days)", ylab = "uptake probability")
+
+# 2. conditional dropping probability
+  plot_probabilities(pd, Xf, Yf, hf, Xmp, Ym, hm,
+                     lwd = 2, ylim = 0:1, add = FALSE, lgnd = TRUE)
+
+# 3. actual duration of treatment
+  effective_duration(pd, Xf, Yf, hf, Xmp, Ym, hm, by, le) |> 
+    with({
+      plot3(x, y, ylab = "probability density")
+      polygon2(x, y)
+    })
+
+# 4. pharmaco-dynamics treatment efficacy
+  ts <- seq2(0, dur_max)
+  plot3(ts, hill(ts, Xe, Ye, he), ylim = 0:1, ylab = "treatment efficacy")
+
+# 5. 
+  plot(NA, xlim = c(0, 45), ylim = 0:1,
+     xlab = "proposed duration d of treatment (days)",
+     ylab = expression(paste("proportion ", pi, " of new infections sterilized")))
+
+  pd_vals <- seq(1, 40, le = 512)
+  out <- mclapply2(pd_vals,
+                   function(x) pi_value(tau, x, Xv, Yv, hv, Zv, Xf, Yf, hf, Xmp, Ym,
+                                        hm, Xe, Ye, he, by, le, n))
+  quantplot(pd_vals, out,  probs = seq(.025, .975, le = 75), col = adjustcolor(4, .1))
+}
+
+opar <- par(mfrow = c(2, 3), cex = 1, plt = c(.25, .95, .25, .9))
+dashboard()
+par(opar)
+```
+
+```{r}
+dashboard <- function(
+    tau = .99, #
+    pd = 10,
+    
+    Xv  = 15,   Yv = 1,   hv = 4, Zv = 1, #
+    Xf  = 200,  Yf = .15, hf = 7, #
+    Xmp = .875, Ym = 1,   hm = 50, #
+    Xe  = 10,   Ye = 1,   he = 1, #
+    
+    dur_max = 40, #
+    proposed_durations = c(20, 40, seq(60, 100, 10)), #
+    by = pd / (le - 1), le = 512, #
+    n = 1000) {
+  
+  proposed_durations <- sort(proposed_durations)
+  
+# 1. treatment uptake
+  ds <- seq2(0, dur_max)
+  plot2(ds, uptake(ds, Xv, Yv, Zv, hv), ylim = 0:1,
+        xlab = "proposed duration of treatment (days)", ylab = "uptake probability")
+
+# 2. actual durations of treatment
+  eds <- map(proposed_durations,
+             ~ effective_duration(.x, Xf, Yf, hf, Xmp, Ym, hm, by, le))
+  plot(NA, xlim = c(0, max(proposed_durations)),
+           ylim = c(0, max(unlist(map(eds, ~ .x$y)))),
+           xlab = "actual duration of treatment (days)",
+           ylab = "probability density")
+  walk(eds, ~ with(.x, {
+    lines2(.x$x, .x$y, col = 4)
+    polygon2(x, y)
+  }))
+  abline2(v = proposed_durations, col = "grey")
+  
+# 3. pharmaco-dynamics treatment efficacy
+  ts <- seq2(0, dur_max)
+  plot3(ts, hill(ts, Xe, Ye, he), ylim = 0:1, ylab = "treatment efficacy")
+
+# 4. intervention efficacy
+  plot(NA, xlim = c(0, 45), ylim = 0:1,
+     xlab = "proposed duration of treatment (days)",
+     ylab = expression(paste("proportion ", pi, " of new infections sterilized")))
+
+  pd_vals <- seq(1, 40, le = 512) #
+  out <- mclapply2(pd_vals,
+                   function(x) pi_value(tau, x, Xv, Yv, hv, Zv, Xf, Yf, hf, Xmp, Ym,
+                                        hm, Xe, Ye, he, by, le, n))
+  quantplot(pd_vals, out,  probs = seq(.025, .975, le = 75), col = adjustcolor(4, .1))
+}
+```
+
+Let's try it:
+
+```{r}
+opar <- par(mfrow = c(2, 2), cex = 1, plt = c(.25, .95, .25, .9))
+dashboard()
+par(opar)
 ```
 
 
@@ -762,7 +876,7 @@ plot_siid_dyn_equ <- function(
     deltas = 1e-6,
     deltaf = 1e-4,
     alpha = 1 / 70,
-    times = seq2(0, 1000000)) {
+    times = seq2(0, 700000)) {
   
   sims <- siid_dyn(N, Is0, If0, D0,
                   pi, p, beta, gammas, gammaf, deltas, deltaf, alpha, times)
@@ -771,7 +885,7 @@ plot_siid_dyn_equ <- function(
   
   plotl2 <- function(...) plotl(..., xlab = "time (year)")
   
-  opar <- par(mfrow = c(1, 4)) #, cex = 1, plt = c(.25, .95, .25, .9))
+  opar <- par(mfrow = c(2, 2), cex = 1, plt = c(.25, .95, .25, .9))
   with(sims, {
     incidence_dyn <- deltas * Is + deltaf * If
     incidence_equ <- deltas * equs["Is"] + deltaf * equs["If"]
@@ -881,7 +995,7 @@ plot_siid_dyn_equ2 <- function(
     deltas = 1e-6,
     deltaf = 1e-4,
     alpha = 1 / 70,
-    times = seq2(0, 1000000)) {
+    times = seq2(0, 500000)) {
   
   sims <- siid_dyn(N, Is0, If0, D0,
                   pi, p, beta, gammas, gammaf, deltas, deltaf, alpha, times)
@@ -890,7 +1004,7 @@ plot_siid_dyn_equ2 <- function(
 
   plotl2 <- function(...) plotl(..., xlab = "time (year)")
   
-  opar <- par(mfrow = c(1, 4)) #, cex = 1, plt = c(.25, .95, .25, .9))
+  opar <- par(mfrow = c(2, 2), cex = 1, plt = c(.25, .95, .25, .9))
   with(sims, {
     plotl2(time, Is + If, col = 1, ylab = "infection prevalence")
     abline(h = equs["I"], col = 1)
@@ -1000,12 +1114,12 @@ siid_p_val <- siid_param_val(I = 2e4, D = D0, ds = di - df, df = df, N = N,
                              deltaf = deltaf)
 
 a <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]], beta = siid_p_val[["beta"]],
-              gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]], deltaf = deltaf,
-              alpha = siid_p_val[["alpha"]])
+              gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]],
+              deltaf = deltaf, alpha = siid_p_val[["alpha"]])
 
 b <- siid_equ2(N = N, p = siid_p_val[["p"]], beta = siid_p_val[["beta"]],
-               gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]], deltaf = deltaf,
-               alpha = siid_p_val[["alpha"]])
+               gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]],
+               deltaf = deltaf, alpha = siid_p_val[["alpha"]])
 
 a["D"]
 sum(a[c("Is", "If")])
@@ -1029,7 +1143,8 @@ df <- x * di
 siid_p_val <- siid_param_val(I = I0, D = D0, ds = di - df, df = df, N = N,
                              deltaf = deltaf)
 
-start_val <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]], beta = siid_p_val[["beta"]],
+start_val <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]],
+                      beta = siid_p_val[["beta"]],
                       gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]],
                       deltaf = deltaf, alpha = siid_p_val[["alpha"]])
 
