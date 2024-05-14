@@ -115,6 +115,18 @@ polygon2 <- function(x, y, col = 4, alpha = .2, ...) {
 polygon3 <- function(x, y1, y2, col = 4, ...) {
   polygon(c(x, rev(x)), c(y1, rev(y2)), col = col, border = NA, ...)
 }
+
+spectral <- function(n) {
+  colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Spectral")))(n)
+}
+```
+
+A function that converts a percentage decrease per year into a rate:
+
+```{r}
+find_rate <- function(x0 = 176, p = .1, b1 = .5 * p, b2 = 1.5 * p) {
+  optimise(function(x) abs(x0 * exp(- x) - (1 - p) * x0), c(b1, b2))$min
+}
 ```
 
 
@@ -154,7 +166,7 @@ abline2(v = X, col = "grey")
 abline2(h = Y, col = "grey")
 
 hs <- exp(seq(-3, 3))
-cols <- rev(RColorBrewer::brewer.pal(n = length(hs), "Spectral"))
+cols <- spectral(length(hs))
 walk2(hs, cols, ~ lines2(xs, hill(xs, X, Y, h = .x), col = .y))
 
 legend3("bottomright", col = cols, title = "Hill coefficient h",
@@ -578,13 +590,14 @@ dashboard <- function(
   plot(NA, xlim = c(0, 45), ylim = ylim4,
      xlab = "proposed duration of treatment (days)",
      ylab = "infections sterilized")
-#  mtext(expression(paste("proportion ", pi, " of new")), 2, 2.25)
   mtext("proportion of new", 2, 2.25)
 
   out <- mclapply2(ds,
                    function(x) pi_value(tau, x, Xv, Yv, hv, Zv, Xf, Yf, hf, Xmp, Ym,
                                         hm, Xe, Ye, he, le = npop, n = nspl))
   quantplot(ds, out,  probs, col = col4, alpha, smooth, f = f2, ...)
+  
+  invisible(list(d = ds, pi = out))
 }
 ```
 
@@ -1089,38 +1102,90 @@ b[["df"]] / d
 
 #### Prophylaxis
 
-```{r}
-times <- 2025 + seq2(0, 30)
-deltaf <- 1 / 2
-N <- 1e5
-I0 <- 2e4
-x <- .9
-di <- 176
-D0 <- 322
-df <- x * di
+##### Manual exploration
 
-siid_p_val <- siid_param_val(I = I0, D = D0, ds = di - df, df = df, N = N,
+```{r}
+pi2dis_inc <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    deltaf = 1 / 2,
+    N = 1e5,
+    rates = c(.02, .1, .2),
+    by = .1,
+    times = 2025 + seq2(0, 30),
+    eps = 5,
+    lgnd = TRUE,
+    show_rates = TRUE) {
+  
+  df <- x * di
+
+  siid_p_val <- siid_param_val(I = I0, D = D0, ds = di - df, df = df, N = N,
                              deltaf = deltaf)
 
-start_val <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]],
-                      beta = siid_p_val[["beta"]],
-                      gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]],
-                      deltaf = deltaf, alpha = siid_p_val[["alpha"]])
+  start_val <- siid_equ(N = N, pi = 0, p = siid_p_val[["p"]],
+                        beta = siid_p_val[["beta"]],
+                        gammas = 0, gammaf = 0, deltas = siid_p_val[["deltas"]],
+                        deltaf = deltaf, alpha = siid_p_val[["alpha"]])
 
-pi_effect <- function(pi) {
-  siid_dyn(N = 1e5, Is0 = start_val[["Is"]], If0 = start_val[["If"]], D0, pi,
-           p      = siid_p_val[["p"]],
-           beta   = siid_p_val[["beta"]], gammas = 0, gammaf = 0,
-           deltas = siid_p_val[["deltas"]], deltaf = deltaf,
-           alpha  = siid_p_val[["alpha"]], times) |> 
-    mutate(d = deltaf * If + siid_p_val[["deltas"]] * Is)
+  pi_effect <- function(pi) {
+    siid_dyn(N = 1e5, Is0 = start_val[["Is"]], If0 = start_val[["If"]], D0, pi,
+             p      = siid_p_val[["p"]],
+             beta   = siid_p_val[["beta"]], gammas = 0, gammaf = 0,
+             deltas = siid_p_val[["deltas"]], deltaf = deltaf,
+             alpha  = siid_p_val[["alpha"]], times) |> 
+      mutate(d = deltaf * If + siid_p_val[["deltas"]] * Is)
+  }
+
+  pi_vals <- seq(0, 1, .1)
+  
+  maxt <- max(times)
+  mint <- min(times)
+  minx <- mint - eps
+  
+  plot(NA, xlim = c(minx, maxt), ylim = c(0, di),
+       xlab = "year", ylab = "(/year/100,000)")
+  mtext("disease incidence", 2, 2.25)
+  
+  cols <- spectral(length(pi_vals))
+  
+  pi_vals |> 
+    map(pi_effect) |> 
+    walk2(cols, ~ with(.x, lines2(time, d, col = .y)))
+  
+  segments(minx, di, mint, di, col = cols[1], lwd = 2)
+  
+  if (show_rates) {
+    xs <- seq(mint, maxt, by)
+    walk2(rates, 2:4,
+          ~ lines2(xs, di * exp(- find_rate(di, .x) * (xs - mint)), lty = .y))
+  }
+  
+  if (lgnd) {
+    legend2("bottomleft", col = cols, title = expression(pi),
+            legend = formatC(round(pi_vals, 2), digits = 2, format = "f"))
+    legend(2048, 175, lty = 2:4, title = "annual decrease", bty = "n", lwd = 2,
+           legend = paste0(formatC(round(rates, 2), digits = 2, format = "f"), "%"))
+  }
 }
+```
 
-plot(NA, xlim = range(times), ylim = c(0, di),
-     xlab = "year", ylab = "disease incidence (/year/100,000)")
+Let's see:
 
-seq(0, 1, .1) |> 
-  map(pi_effect) |> 
-  walk(~ with(.x, lines2(time, d, col = 4)))
+```{r}
+pi2dis_inc()
+```
+
+
+##### Dashboard
+
+```{r fig.height = 3 * 5 / 2}
+opar <- par(mfrow = c(3, 2), cex = 1, plt = c(.25, .95, .25, .9))
+pis <- dashboard(probs = seq(.001, .999, le = 9), alpha = .2, npop = 1e4, nspl = 1e3,
+                 col2 = 4, col4 = 4, ylim4 = c(0, .5))
+pi2dis_inc(lgnd = FALSE)
+plot(1:10)
+par(opar)
 ```
 
