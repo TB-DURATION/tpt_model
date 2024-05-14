@@ -538,7 +538,7 @@ dashboard <- function(
     Xe  = 10,   Ye = 1,   he = 1,
     
     dur_max = 40,
-    by = pd / (le - 1), le = 512,
+#    by = pd / (le - 1), le = 512,
     n = 1000) {
   
 # 1. treatment uptake
@@ -580,29 +580,31 @@ par(opar)
 
 ```{r}
 dashboard <- function(
-    tau = .99, #
-    pd = 10,
+    proposed_durations = seq(1, 40, le = 7),
+    tau = .99,
     
-    Xv  = 15,   Yv = 1,   hv = 4, Zv = 1, #
-    Xf  = 200,  Yf = .15, hf = 7, #
-    Xmp = .875, Ym = 1,   hm = 50, #
-    Xe  = 10,   Ye = 1,   he = 1, #
+    Xv  = 15,   Yv = 1,   hv = 4, Zv = 1,
+    Xf  = 200,  Yf = .15, hf = 7,
+    Xmp = .875, Ym = 1,   hm = 50,
+    Xe  = 10,   Ye = 1,   he = 1,
     
-    dur_max = 40, #
-    proposed_durations = c(20, 40, seq(60, 100, 10)), #
-    by = pd / (le - 1), le = 512, #
-    n = 1000) {
+    le = 512, # nb of pts on the lines of fig 2, along the x axis of fig 4
+    npop = 1000, # nb of pts along the distribution to draw from
+    nspl = 1000, # nb of pts to draw from the distribution (nspl >> npop is better)
+    probs = seq(.025, .975, le = 75),
+    alpha = .1) {
   
   proposed_durations <- sort(proposed_durations)
+  max_dur <- max(proposed_durations)
+  ds <- seq2(0, max_dur)
   
 # 1. treatment uptake
-  ds <- seq2(0, dur_max)
   plot2(ds, uptake(ds, Xv, Yv, Zv, hv), ylim = 0:1,
         xlab = "proposed duration of treatment (days)", ylab = "uptake probability")
 
 # 2. actual durations of treatment
   eds <- map(proposed_durations,
-             ~ effective_duration(.x, Xf, Yf, hf, Xmp, Ym, hm, by, le))
+             ~ effective_duration(.x, Xf, Yf, hf, Xmp, Ym, hm, le = le))
   plot(NA, xlim = c(0, max(proposed_durations)),
            ylim = c(0, max(unlist(map(eds, ~ .x$y)))),
            xlab = "actual duration of treatment (days)",
@@ -614,19 +616,18 @@ dashboard <- function(
   abline2(v = proposed_durations, col = "grey")
   
 # 3. pharmaco-dynamics treatment efficacy
-  ts <- seq2(0, dur_max)
-  plot3(ts, hill(ts, Xe, Ye, he), ylim = 0:1, ylab = "treatment efficacy")
+  plot3(ds, hill(ds, Xe, Ye, he), ylim = 0:1, ylab = "treatment efficacy")
 
 # 4. intervention efficacy
   plot(NA, xlim = c(0, 45), ylim = 0:1,
      xlab = "proposed duration of treatment (days)",
      ylab = expression(paste("proportion ", pi, " of new infections sterilized")))
 
-  pd_vals <- seq(1, 40, le = 512) #
+  pd_vals <- seq(1, max_dur, le = le) #
   out <- mclapply2(pd_vals,
                    function(x) pi_value(tau, x, Xv, Yv, hv, Zv, Xf, Yf, hf, Xmp, Ym,
-                                        hm, Xe, Ye, he, by, le, n))
-  quantplot(pd_vals, out,  probs = seq(.025, .975, le = 75), col = adjustcolor(4, .1))
+                                        hm, Xe, Ye, he, le = npop, n = nspl))
+  quantplot(pd_vals, out,  probs = probs, col = adjustcolor(4, alpha))
 }
 ```
 
@@ -634,7 +635,7 @@ Let's try it:
 
 ```{r}
 opar <- par(mfrow = c(2, 2), cex = 1, plt = c(.25, .95, .25, .9))
-dashboard()
+dashboard(probs = seq(.001, .999, le = 9), alpha = .2, npop = 1e4, nspl = 1e3)
 par(opar)
 ```
 
