@@ -1189,3 +1189,17 @@ plot(1:10)
 par(opar)
 ```
 
+### Serial SIID
+
+![Flow diagram of a minimalist SID model.](SIsIfD.png){width=320 #fig-SIID}
+
+#### Dynamics
+
+$$
+\begin{align} 
+  \frac{dS}{dt} &=  \gamma_s I_s + \gamma_f I_f + \alpha D - (1 - p\pi)\beta D S\\
+  \frac{dI_s}{dt} &=  (1 - p) \beta D S - (\gamma_s + \delta_s) I_s \\
+  \frac{dI_f}{dt} &=  (1-\pi) p \beta D S - (\gamma_f + \delta_f) I_f  \\
+  \frac{dD}{dt} &= \delta_s I_s + \delta_f I_f - \alpha D
+\end{align}
+$$

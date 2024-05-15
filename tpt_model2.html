@@ -138,6 +138,10 @@ window.Quarto = {
   <li><a href="#calibration-1" id="toc-calibration-1" class="nav-link" data-scroll-target="#calibration-1"><span class="header-section-number">5.2.3</span> Calibration</a></li>
   <li><a href="#prophylaxis" id="toc-prophylaxis" class="nav-link" data-scroll-target="#prophylaxis"><span class="header-section-number">5.2.4</span> Prophylaxis</a></li>
   </ul></li>
+  <li><a href="#serial-siid" id="toc-serial-siid" class="nav-link" data-scroll-target="#serial-siid"><span class="header-section-number">5.3</span> Serial SIID</a>
+  <ul class="collapse">
+  <li><a href="#dynamics-2" id="toc-dynamics-2" class="nav-link" data-scroll-target="#dynamics-2"><span class="header-section-number">5.3.1</span> Dynamics</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -526,8 +530,9 @@ P(t|\theta_m, \theta_f) =
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">draw_durations</span>(<span class="at">n =</span> <span class="dv">16</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] 18.16047 15.96869 12.75930 11.50685 15.96869 16.28180 16.82975 11.50685
- [9] 16.12524 13.38552 17.37769 12.75930 15.26419 14.95108 15.96869 15.34247</code></pre>
+<pre><code> [1] 11.663405 13.463796 14.637965 17.299413  9.784736 11.741683 11.741683
+ [8] 14.246575 14.794521 17.299413 15.655577  9.706458 12.681018 11.428571
+[15] 12.915851 13.072407</code></pre>
 </div>
 </div>
 </section>
@@ -1365,6 +1370,30 @@ d_s^* &amp;= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\
 <div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(opar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
+</section>
+</section>
+<section id="serial-siid" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="serial-siid"><span class="header-section-number">5.3</span> Serial SIID</h3>
+<div id="fig-SIID" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-SIID-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="SIsIfD.png" class="img-fluid figure-img" width="320">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-SIID-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Flow diagram of a minimalist SID model.
+</figcaption>
+</figure>
+</div>
+<section id="dynamics-2" class="level4" data-number="5.3.1">
+<h4 data-number="5.3.1" class="anchored" data-anchor-id="dynamics-2"><span class="header-section-number">5.3.1</span> Dynamics</h4>
+<p><span class="math display">\[
+\begin{align}
+  \frac{dS}{dt} &amp;=  \gamma_s I_s + \gamma_f I_f + \alpha D - (1 - p\pi)\beta D S\\
+  \frac{dI_s}{dt} &amp;=  (1 - p) \beta D S - (\gamma_s + \delta_s) I_s \\
+  \frac{dI_f}{dt} &amp;=  (1-\pi) p \beta D S - (\gamma_f + \delta_f) I_f  \\
+  \frac{dD}{dt} &amp;= \delta_s I_s + \delta_f I_f - \alpha D
+\end{align}
+\]</span></p>
 </section>
 </section>
 </section>
