@@ -1199,27 +1199,199 @@ $$
 \begin{align} 
   \frac{dS}{dt}   &= \gamma_1 I_1 + \gamma_2 I_2 + \alpha D - p\beta DS  \\
   \frac{dI_1}{dt} &= p\beta DS - (\gamma_1 + \delta_1 + \sigma)I_1       \\
-  \frac{dI_2}{dt} &= \sigma I_2 - (\delta_2 + \gamma_2) I_2 \\
+  \frac{dI_2}{dt} &= \sigma I_1 - (\delta_2 + \gamma_2) I_2              \\
   \frac{dD}{dt}   &= \delta_1 I_1 + \delta_2 I_2 - \alpha D
 \end{align}
 $$
 
+```{r}
+siid2_dyn <- function(N = 1e5, I10 = 0, I20 = 0, D0,
+                      p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) {
+  ode2(c(S = N - I10 - I20 - D0, I1 = I10, I2 = I20, D = D0),
+       times,
+       function(time, state, pars) {
+         with(as.list(c(state, pars)), {
+           infection <- p * beta * D * S
+           dS  <- gamma1 * I1 + gamma2 * I2 + alpha * D - infection
+           dI1 <- infection - (gamma1 + delta1 + sigma) * I1
+           dI2 <- sigma * I1 - (delta2 + gamma2) * I2
+           dD  <- delta1 * I1 + delta2 * I2 - alpha * D
+           list(c(dS, dI1, dI2, dD))
+         })
+       },
+       c(p = p, beta = beta, sigma = sigma, alpha = alpha, gamma1 = gamma1,
+         gamma2 = gamma2, delta1 = delta1, delta2 = delta2))
+}
+```
+
+```{r}
+delta1 <- 1 / 2
+delta2 <- 1 / 20
+siid2_dyn(N = 1e5,
+          I10 = 10000,
+          I20 = 0,
+          D0 = 300,
+          p = .1,
+          beta = .0001,
+          sigma = 1 / 2,
+          alpha = 2,
+          gamma1 = 1 / 60,
+          gamma2 = 1 / 60,
+          delta1,
+          delta2,
+          times = seq2(0, 100)) |> 
+  with(plotl(time, delta1 * I1 + delta2 * I2))
+abline(h = 0)
+```
+
+```{r}
+delta1 <- 1 / 2
+delta2 <- .0008941636
+siid2_dyn(N = 1e5,
+          I10 = 316.8,
+          I20 = 19683.2,
+          D0 = 322,
+          p = 0,
+          beta = .00001985216,
+          sigma = 1.091077,
+          alpha = .5465839,
+          gamma1 = 1 / 60,
+          gamma2 = 1 / 60,
+          delta1,
+          delta2,
+          times = seq2(0, 30)) |> 
+  with(plotl(time, delta1 * I1 + delta2 * I2, ylim = c(0, 176)))
+abline(h = 0)
+```
+
+
 #### Equilibrium
 
+$$
+\begin{align} 
+  S^*   &= N - I_1^* - I_2^* -D^*   \\
+  I_1^* &= \frac{[(\gamma_2\delta_1 + [\delta_1 + \sigma]\delta_2)p\beta N -
+                  (\gamma_1 + \delta_1 + \sigma)
+                    (\gamma_2 + \delta_2)\alpha](\gamma_2 + \delta_2)\alpha}
+                {[(\alpha + \delta_1)(\gamma_2 + \delta_2) + (\alpha + \delta_2)\sigma]
+                 [\gamma_2\delta_1 + (\delta_1 + \sigma)\delta_2]p\beta}        \\
+  I_2^* &= \frac{\sigma}{\delta_2 + \gamma_2} I_1^*\\
+  D^*   &= \frac{\delta_1 I_1^* + \delta_2 I_2^*}{\alpha}
+\end{align}
+$$
+
+```{r}
+siid2_equ <- function(N, p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2) {
+  I1 <- ((gamma2 * delta1 + (delta1 + sigma) * delta2) * p * beta * N -
+           (gamma1 + delta1 + sigma) * (gamma2 + delta2) * alpha) *
+          (gamma2 + delta2) * alpha / 
+        (((alpha + delta1) * (gamma2 + delta2) + (alpha + delta2) * sigma) * 
+           (gamma2 * delta1 + (delta1 + sigma) * delta2) * p * beta)
+  I2 <- sigma * I1 / (delta2 + gamma2)
+  D  <- (delta1 * I1 + delta2 * I2) / alpha
+  c(S = N - I1 - I2 - D, I1 = I1, I2 = I2, D = D)
+}
+```
 
 
+#### Calibration
+
+$$
+\begin{align} 
+  \alpha   &= \frac{d_1^* + d_2^*}{D^*}                                            \\
+  \beta    &= \frac{(\delta_1 + \gamma_1 - \gamma_2)d_1^* + \delta_1d_2^* +
+                     \gamma_2\delta_1 I^*}
+                   {(N - I^* - D^*)\delta_1 D^*}                                   \\
+  \sigma   &= \frac{\delta_1 d_2^* - \gamma_2 d_1^* + \delta_1\gamma_2 I^*}{d_1^*} \\
+  \delta_2 &= \frac{\delta_1 d_2^*}{\delta_1 I^* - d_1^*}
+\end{align}
+$$
+
+```{r}
+siid2_param_val <- function(I, D, d1, d2, delta1, gamma1, gamma2, N) {
+  c(
+    alpha  = (d1 + d2) / D,
+    beta   = ((delta1 + gamma1 - gamma2) * d1 + delta1 * d2 + gamma2 * delta1 * I) /
+             ((N - I - D) * delta1 * D),
+    sigma  = (delta1 * d2 - gamma2 * d1 + delta1 * gamma2 * I) / d1,
+    delta2 = delta1 * d2 / (delta1 * I - d1)
+  )
+}
+```
 
 
+#### Prophylaxis
 
+```{r}
+p2dis_inc <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5,
+    rates = c(.02, .1, .2),
+    by = .1,
+    times = 2025 + seq2(0, 30),
+    eps = 5,
+    lgnd = TRUE,
+    show_rates = TRUE) {
+  
+  d1 <- x * di
 
+  p_val <- siid2_param_val(I0, D0, d1, di - d1, delta1, gamma1, gamma2, N)
+  
+  alpha  <- p_val[["alpha"]]
+  beta   <- p_val[["beta"]]
+  sigma  <- p_val[["sigma"]]
+  delta2 <- p_val[["delta2"]]
+  
+  start_val <- siid2_equ(N, 1, beta, sigma, alpha, gamma1, gamma2, delta1, delta2)
+  
+  p_effect <- function(p) {
+    siid2_dyn(N, start_val[["I1"]], start_val[["I2"]], start_val[["D"]],
+              p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) |> 
+      mutate(d = delta1 * I1 + delta2 * I2)
+  }
 
+  p_vals <- seq(0, 1, .1)
+  
+  maxt <- max(times)
+  mint <- min(times)
+  minx <- mint - eps
+  
+  plot(NA, xlim = c(minx, maxt), ylim = c(0, di),
+       xlab = "year", ylab = "(/year/100,000)")
+  mtext("disease incidence", 2, 2.25)
+  
+  cols <- spectral(length(p_vals))
+  
+  p_vals |> 
+    map(p_effect) |> 
+    walk2(cols, ~ with(.x, lines2(time, d, col = .y)))
+  
+  segments(minx, di, mint, di, col = cols[1], lwd = 2)
+  
+  if (show_rates) {
+    xs <- seq(mint, maxt, by)
+    walk2(rates, 2:4,
+          ~ lines2(xs, di * exp(- find_rate(di, .x) * (xs - mint)), lty = .y))
+  }
+  
+  if (lgnd) {
+    legend2("bottomleft", col = cols, title = expression(pi),
+            legend = formatC(round(p_vals, 2), digits = 2, format = "f"))
+    legend(2048, 175, lty = 2:4, title = "annual decrease", bty = "n", lwd = 2,
+           legend = paste0(formatC(round(rates, 2), digits = 2, format = "f"), "%"))
+  }
+  
+  return(list(start_val, p_val))
+}
 
-
-
-
-
-
-
+p2dis_inc()
+```
 
 
 

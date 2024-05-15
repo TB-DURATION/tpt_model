@@ -141,6 +141,9 @@ window.Quarto = {
   <li><a href="#serial-siid" id="toc-serial-siid" class="nav-link" data-scroll-target="#serial-siid"><span class="header-section-number">5.3</span> Serial SIID</a>
   <ul class="collapse">
   <li><a href="#dynamics-2" id="toc-dynamics-2" class="nav-link" data-scroll-target="#dynamics-2"><span class="header-section-number">5.3.1</span> Dynamics</a></li>
+  <li><a href="#equilibrium-2" id="toc-equilibrium-2" class="nav-link" data-scroll-target="#equilibrium-2"><span class="header-section-number">5.3.2</span> Equilibrium</a></li>
+  <li><a href="#calibration-2" id="toc-calibration-2" class="nav-link" data-scroll-target="#calibration-2"><span class="header-section-number">5.3.3</span> Calibration</a></li>
+  <li><a href="#prophylaxis-1" id="toc-prophylaxis-1" class="nav-link" data-scroll-target="#prophylaxis-1"><span class="header-section-number">5.3.4</span> Prophylaxis</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -530,9 +533,8 @@ P(t|\theta_m, \theta_f) =
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">draw_durations</span>(<span class="at">n =</span> <span class="dv">16</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] 11.663405 13.463796 14.637965 17.299413  9.784736 11.741683 11.741683
- [8] 14.246575 14.794521 17.299413 15.655577  9.706458 12.681018 11.428571
-[15] 12.915851 13.072407</code></pre>
+<pre><code> [1] 18.16047 15.96869 12.75930 11.50685 15.96869 16.28180 16.82975 11.50685
+ [9] 16.12524 13.38552 17.37769 12.75930 15.26419 14.95108 15.96869 15.34247</code></pre>
 </div>
 </div>
 </section>
@@ -1377,7 +1379,7 @@ d_s^* &amp;= \left( \alpha + \frac{(\delta_s N - [\alpha + \delta_s] D^*)p\beta\
 <div id="fig-SIID" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-SIID-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="SIsIfD.png" class="img-fluid figure-img" width="320">
+<img src="SIID2.png" class="img-fluid figure-img" width="320">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-SIID-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: Flow diagram of a minimalist SID model.
@@ -1388,12 +1390,223 @@ Figure&nbsp;3: Flow diagram of a minimalist SID model.
 <h4 data-number="5.3.1" class="anchored" data-anchor-id="dynamics-2"><span class="header-section-number">5.3.1</span> Dynamics</h4>
 <p><span class="math display">\[
 \begin{align}
-  \frac{dS}{dt} &amp;=  \gamma_s I_s + \gamma_f I_f + \alpha D - (1 - p\pi)\beta D S\\
-  \frac{dI_s}{dt} &amp;=  (1 - p) \beta D S - (\gamma_s + \delta_s) I_s \\
-  \frac{dI_f}{dt} &amp;=  (1-\pi) p \beta D S - (\gamma_f + \delta_f) I_f  \\
-  \frac{dD}{dt} &amp;= \delta_s I_s + \delta_f I_f - \alpha D
+  \frac{dS}{dt}   &amp;= \gamma_1 I_1 + \gamma_2 I_2 + \alpha D - p\beta DS  \\
+  \frac{dI_1}{dt} &amp;= p\beta DS - (\gamma_1 + \delta_1 + \sigma)I_1       \\
+  \frac{dI_2}{dt} &amp;= \sigma I_1 - (\delta_2 + \gamma_2) I_2              \\
+  \frac{dD}{dt}   &amp;= \delta_1 I_1 + \delta_2 I_2 - \alpha D
 \end{align}
 \]</span></p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>siid2_dyn <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">N =</span> <span class="fl">1e5</span>, <span class="at">I10 =</span> <span class="dv">0</span>, <span class="at">I20 =</span> <span class="dv">0</span>, D0,</span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>                      p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) {</span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ode2</span>(<span class="fu">c</span>(<span class="at">S =</span> N <span class="sc">-</span> I10 <span class="sc">-</span> I20 <span class="sc">-</span> D0, <span class="at">I1 =</span> I10, <span class="at">I2 =</span> I20, <span class="at">D =</span> D0),</span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a>       times,</span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>       <span class="cf">function</span>(time, state, pars) {</span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a>         <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(state, pars)), {</span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a>           infection <span class="ot">&lt;-</span> p <span class="sc">*</span> beta <span class="sc">*</span> D <span class="sc">*</span> S</span>
+<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a>           dS  <span class="ot">&lt;-</span> gamma1 <span class="sc">*</span> I1 <span class="sc">+</span> gamma2 <span class="sc">*</span> I2 <span class="sc">+</span> alpha <span class="sc">*</span> D <span class="sc">-</span> infection</span>
+<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a>           dI1 <span class="ot">&lt;-</span> infection <span class="sc">-</span> (gamma1 <span class="sc">+</span> delta1 <span class="sc">+</span> sigma) <span class="sc">*</span> I1</span>
+<span id="cb79-10"><a href="#cb79-10" aria-hidden="true" tabindex="-1"></a>           dI2 <span class="ot">&lt;-</span> sigma <span class="sc">*</span> I1 <span class="sc">-</span> (delta2 <span class="sc">+</span> gamma2) <span class="sc">*</span> I2</span>
+<span id="cb79-11"><a href="#cb79-11" aria-hidden="true" tabindex="-1"></a>           dD  <span class="ot">&lt;-</span> delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2 <span class="sc">-</span> alpha <span class="sc">*</span> D</span>
+<span id="cb79-12"><a href="#cb79-12" aria-hidden="true" tabindex="-1"></a>           <span class="fu">list</span>(<span class="fu">c</span>(dS, dI1, dI2, dD))</span>
+<span id="cb79-13"><a href="#cb79-13" aria-hidden="true" tabindex="-1"></a>         })</span>
+<span id="cb79-14"><a href="#cb79-14" aria-hidden="true" tabindex="-1"></a>       },</span>
+<span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="at">p =</span> p, <span class="at">beta =</span> beta, <span class="at">sigma =</span> sigma, <span class="at">alpha =</span> alpha, <span class="at">gamma1 =</span> gamma1,</span>
+<span id="cb79-16"><a href="#cb79-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">gamma2 =</span> gamma2, <span class="at">delta1 =</span> delta1, <span class="at">delta2 =</span> delta2))</span>
+<span id="cb79-17"><a href="#cb79-17" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>delta1 <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>delta2 <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">20</span></span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a><span class="fu">siid2_dyn</span>(<span class="at">N =</span> <span class="fl">1e5</span>,</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">I10 =</span> <span class="dv">10000</span>,</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">I20 =</span> <span class="dv">0</span>,</span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">D0 =</span> <span class="dv">300</span>,</span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">p =</span> .<span class="dv">1</span>,</span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">beta =</span> .<span class="dv">0001</span>,</span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">sigma =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">alpha =</span> <span class="dv">2</span>,</span>
+<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>          delta1,</span>
+<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a>          delta2,</span>
+<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">100</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb80-16"><a href="#cb80-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">plotl</span>(time, delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2))</span>
+<span id="cb80-17"><a href="#cb80-17" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="tpt_model2_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>delta1 <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>delta2 <span class="ot">&lt;-</span> .<span class="dv">0008941636</span></span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a><span class="fu">siid2_dyn</span>(<span class="at">N =</span> <span class="fl">1e5</span>,</span>
+<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">I10 =</span> <span class="fl">316.8</span>,</span>
+<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">I20 =</span> <span class="fl">19683.2</span>,</span>
+<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">D0 =</span> <span class="dv">322</span>,</span>
+<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">p =</span> <span class="dv">0</span>,</span>
+<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">beta =</span> .<span class="dv">00001985216</span>,</span>
+<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">sigma =</span> <span class="fl">1.091077</span>,</span>
+<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">alpha =</span> .<span class="dv">5465839</span>,</span>
+<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a>          delta1,</span>
+<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>          delta2,</span>
+<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">30</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">plotl</span>(time, delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">176</span>)))</span>
+<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="tpt_model2_files/figure-html/unnamed-chunk-55-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="equilibrium-2" class="level4" data-number="5.3.2">
+<h4 data-number="5.3.2" class="anchored" data-anchor-id="equilibrium-2"><span class="header-section-number">5.3.2</span> Equilibrium</h4>
+<p><span class="math display">\[
+\begin{align}
+  S^*   &amp;= N - I_1^* - I_2^* -D^*   \\
+  I_1^* &amp;= \frac{[(\gamma_2\delta_1 + [\delta_1 + \sigma]\delta_2)p\beta N -
+                  (\gamma_1 + \delta_1 + \sigma)
+                    (\gamma_2 + \delta_2)\alpha](\gamma_2 + \delta_2)\alpha}
+                {[(\alpha + \delta_1)(\gamma_2 + \delta_2) + (\alpha + \delta_2)\sigma]
+                 [\gamma_2\delta_1 + (\delta_1 + \sigma)\delta_2]p\beta}        \\
+  I_2^* &amp;= \frac{\sigma}{\delta_2 + \gamma_2} I_1^*\\
+  D^*   &amp;= \frac{\delta_1 I_1^* + \delta_2 I_2^*}{\alpha}
+\end{align}
+\]</span></p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>siid2_equ <span class="ot">&lt;-</span> <span class="cf">function</span>(N, p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2) {</span>
+<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>  I1 <span class="ot">&lt;-</span> ((gamma2 <span class="sc">*</span> delta1 <span class="sc">+</span> (delta1 <span class="sc">+</span> sigma) <span class="sc">*</span> delta2) <span class="sc">*</span> p <span class="sc">*</span> beta <span class="sc">*</span> N <span class="sc">-</span></span>
+<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>           (gamma1 <span class="sc">+</span> delta1 <span class="sc">+</span> sigma) <span class="sc">*</span> (gamma2 <span class="sc">+</span> delta2) <span class="sc">*</span> alpha) <span class="sc">*</span></span>
+<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>          (gamma2 <span class="sc">+</span> delta2) <span class="sc">*</span> alpha <span class="sc">/</span> </span>
+<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>        (((alpha <span class="sc">+</span> delta1) <span class="sc">*</span> (gamma2 <span class="sc">+</span> delta2) <span class="sc">+</span> (alpha <span class="sc">+</span> delta2) <span class="sc">*</span> sigma) <span class="sc">*</span> </span>
+<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>           (gamma2 <span class="sc">*</span> delta1 <span class="sc">+</span> (delta1 <span class="sc">+</span> sigma) <span class="sc">*</span> delta2) <span class="sc">*</span> p <span class="sc">*</span> beta)</span>
+<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>  I2 <span class="ot">&lt;-</span> sigma <span class="sc">*</span> I1 <span class="sc">/</span> (delta2 <span class="sc">+</span> gamma2)</span>
+<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>  D  <span class="ot">&lt;-</span> (delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2) <span class="sc">/</span> alpha</span>
+<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="at">S =</span> N <span class="sc">-</span> I1 <span class="sc">-</span> I2 <span class="sc">-</span> D, <span class="at">I1 =</span> I1, <span class="at">I2 =</span> I2, <span class="at">D =</span> D)</span>
+<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="calibration-2" class="level4" data-number="5.3.3">
+<h4 data-number="5.3.3" class="anchored" data-anchor-id="calibration-2"><span class="header-section-number">5.3.3</span> Calibration</h4>
+<p><span class="math display">\[
+\begin{align}
+  \alpha   &amp;= \frac{d_1^* + d_2^*}{D^*}                                            \\
+  \beta    &amp;= \frac{(\delta_1 + \gamma_1 - \gamma_2)d_1^* + \delta_1d_2^* +
+                     \gamma_2\delta_1 I^*}
+                   {(N - I^* - D^*)\delta_1 D^*}                                   \\
+  \sigma   &amp;= \frac{\delta_1 d_2^* - \gamma_2 d_1^* + \delta_1\gamma_2 I^*}{d_1^*} \\
+  \delta_2 &amp;= \frac{\delta_1 d_2^*}{\delta_1 I^* - d_1^*}
+\end{align}
+\]</span></p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>siid2_param_val <span class="ot">&lt;-</span> <span class="cf">function</span>(I, D, d1, d2, delta1, gamma1, gamma2, N) {</span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(</span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha  =</span> (d1 <span class="sc">+</span> d2) <span class="sc">/</span> D,</span>
+<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">beta   =</span> ((delta1 <span class="sc">+</span> gamma1 <span class="sc">-</span> gamma2) <span class="sc">*</span> d1 <span class="sc">+</span> delta1 <span class="sc">*</span> d2 <span class="sc">+</span> gamma2 <span class="sc">*</span> delta1 <span class="sc">*</span> I) <span class="sc">/</span></span>
+<span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>             ((N <span class="sc">-</span> I <span class="sc">-</span> D) <span class="sc">*</span> delta1 <span class="sc">*</span> D),</span>
+<span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma  =</span> (delta1 <span class="sc">*</span> d2 <span class="sc">-</span> gamma2 <span class="sc">*</span> d1 <span class="sc">+</span> delta1 <span class="sc">*</span> gamma2 <span class="sc">*</span> I) <span class="sc">/</span> d1,</span>
+<span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">delta2 =</span> delta1 <span class="sc">*</span> d2 <span class="sc">/</span> (delta1 <span class="sc">*</span> I <span class="sc">-</span> d1)</span>
+<span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="prophylaxis-1" class="level4" data-number="5.3.4">
+<h4 data-number="5.3.4" class="anchored" data-anchor-id="prophylaxis-1"><span class="header-section-number">5.3.4</span> Prophylaxis</h4>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>p2dis_inc <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">I0 =</span> <span class="fl">2e4</span>,</span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">D0 =</span> <span class="dv">322</span>,</span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">di =</span> <span class="dv">176</span>,</span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> .<span class="dv">9</span>,</span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">delta1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="fl">1e5</span>,</span>
+<span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">rates =</span> <span class="fu">c</span>(.<span class="dv">02</span>, .<span class="dv">1</span>, .<span class="dv">2</span>),</span>
+<span id="cb84-11"><a href="#cb84-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> .<span class="dv">1</span>,</span>
+<span id="cb84-12"><a href="#cb84-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="dv">2025</span> <span class="sc">+</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">30</span>),</span>
+<span id="cb84-13"><a href="#cb84-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">eps =</span> <span class="dv">5</span>,</span>
+<span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">lgnd =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">show_rates =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-17"><a href="#cb84-17" aria-hidden="true" tabindex="-1"></a>  d1 <span class="ot">&lt;-</span> x <span class="sc">*</span> di</span>
+<span id="cb84-18"><a href="#cb84-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-19"><a href="#cb84-19" aria-hidden="true" tabindex="-1"></a>  p_val <span class="ot">&lt;-</span> <span class="fu">siid2_param_val</span>(I0, D0, d1, di <span class="sc">-</span> d1, delta1, gamma1, gamma2, N)</span>
+<span id="cb84-20"><a href="#cb84-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-21"><a href="#cb84-21" aria-hidden="true" tabindex="-1"></a>  alpha  <span class="ot">&lt;-</span> p_val[[<span class="st">"alpha"</span>]]</span>
+<span id="cb84-22"><a href="#cb84-22" aria-hidden="true" tabindex="-1"></a>  beta   <span class="ot">&lt;-</span> p_val[[<span class="st">"beta"</span>]]</span>
+<span id="cb84-23"><a href="#cb84-23" aria-hidden="true" tabindex="-1"></a>  sigma  <span class="ot">&lt;-</span> p_val[[<span class="st">"sigma"</span>]]</span>
+<span id="cb84-24"><a href="#cb84-24" aria-hidden="true" tabindex="-1"></a>  delta2 <span class="ot">&lt;-</span> p_val[[<span class="st">"delta2"</span>]]</span>
+<span id="cb84-25"><a href="#cb84-25" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-26"><a href="#cb84-26" aria-hidden="true" tabindex="-1"></a>  start_val <span class="ot">&lt;-</span> <span class="fu">siid2_equ</span>(N, <span class="dv">1</span>, beta, sigma, alpha, gamma1, gamma2, delta1, delta2)</span>
+<span id="cb84-27"><a href="#cb84-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-28"><a href="#cb84-28" aria-hidden="true" tabindex="-1"></a>  p_effect <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
+<span id="cb84-29"><a href="#cb84-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">siid2_dyn</span>(N, start_val[[<span class="st">"I1"</span>]], start_val[[<span class="st">"I2"</span>]], start_val[[<span class="st">"D"</span>]],</span>
+<span id="cb84-30"><a href="#cb84-30" aria-hidden="true" tabindex="-1"></a>              p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) <span class="sc">|&gt;</span> </span>
+<span id="cb84-31"><a href="#cb84-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">d =</span> delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2)</span>
+<span id="cb84-32"><a href="#cb84-32" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb84-33"><a href="#cb84-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-34"><a href="#cb84-34" aria-hidden="true" tabindex="-1"></a>  p_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>)</span>
+<span id="cb84-35"><a href="#cb84-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-36"><a href="#cb84-36" aria-hidden="true" tabindex="-1"></a>  maxt <span class="ot">&lt;-</span> <span class="fu">max</span>(times)</span>
+<span id="cb84-37"><a href="#cb84-37" aria-hidden="true" tabindex="-1"></a>  mint <span class="ot">&lt;-</span> <span class="fu">min</span>(times)</span>
+<span id="cb84-38"><a href="#cb84-38" aria-hidden="true" tabindex="-1"></a>  minx <span class="ot">&lt;-</span> mint <span class="sc">-</span> eps</span>
+<span id="cb84-39"><a href="#cb84-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-40"><a href="#cb84-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(minx, maxt), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, di),</span>
+<span id="cb84-41"><a href="#cb84-41" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"year"</span>, <span class="at">ylab =</span> <span class="st">"(/year/100,000)"</span>)</span>
+<span id="cb84-42"><a href="#cb84-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mtext</span>(<span class="st">"disease incidence"</span>, <span class="dv">2</span>, <span class="fl">2.25</span>)</span>
+<span id="cb84-43"><a href="#cb84-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-44"><a href="#cb84-44" aria-hidden="true" tabindex="-1"></a>  cols <span class="ot">&lt;-</span> <span class="fu">spectral</span>(<span class="fu">length</span>(p_vals))</span>
+<span id="cb84-45"><a href="#cb84-45" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-46"><a href="#cb84-46" aria-hidden="true" tabindex="-1"></a>  p_vals <span class="sc">|&gt;</span> </span>
+<span id="cb84-47"><a href="#cb84-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(p_effect) <span class="sc">|&gt;</span> </span>
+<span id="cb84-48"><a href="#cb84-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">walk2</span>(cols, <span class="sc">~</span> <span class="fu">with</span>(.x, <span class="fu">lines2</span>(time, d, <span class="at">col =</span> .y)))</span>
+<span id="cb84-49"><a href="#cb84-49" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-50"><a href="#cb84-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">segments</span>(minx, di, mint, di, <span class="at">col =</span> cols[<span class="dv">1</span>], <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb84-51"><a href="#cb84-51" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-52"><a href="#cb84-52" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (show_rates) {</span>
+<span id="cb84-53"><a href="#cb84-53" aria-hidden="true" tabindex="-1"></a>    xs <span class="ot">&lt;-</span> <span class="fu">seq</span>(mint, maxt, by)</span>
+<span id="cb84-54"><a href="#cb84-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">walk2</span>(rates, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>,</span>
+<span id="cb84-55"><a href="#cb84-55" aria-hidden="true" tabindex="-1"></a>          <span class="sc">~</span> <span class="fu">lines2</span>(xs, di <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span> <span class="fu">find_rate</span>(di, .x) <span class="sc">*</span> (xs <span class="sc">-</span> mint)), <span class="at">lty =</span> .y))</span>
+<span id="cb84-56"><a href="#cb84-56" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb84-57"><a href="#cb84-57" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-58"><a href="#cb84-58" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (lgnd) {</span>
+<span id="cb84-59"><a href="#cb84-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend2</span>(<span class="st">"bottomleft"</span>, <span class="at">col =</span> cols, <span class="at">title =</span> <span class="fu">expression</span>(pi),</span>
+<span id="cb84-60"><a href="#cb84-60" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend =</span> <span class="fu">formatC</span>(<span class="fu">round</span>(p_vals, <span class="dv">2</span>), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">format =</span> <span class="st">"f"</span>))</span>
+<span id="cb84-61"><a href="#cb84-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend</span>(<span class="dv">2048</span>, <span class="dv">175</span>, <span class="at">lty =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">title =</span> <span class="st">"annual decrease"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">lwd =</span> <span class="dv">2</span>,</span>
+<span id="cb84-62"><a href="#cb84-62" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend =</span> <span class="fu">paste0</span>(<span class="fu">formatC</span>(<span class="fu">round</span>(rates, <span class="dv">2</span>), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">format =</span> <span class="st">"f"</span>), <span class="st">"%"</span>))</span>
+<span id="cb84-63"><a href="#cb84-63" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb84-64"><a href="#cb84-64" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-65"><a href="#cb84-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(start_val, p_val))</span>
+<span id="cb84-66"><a href="#cb84-66" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb84-67"><a href="#cb84-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-68"><a href="#cb84-68" aria-hidden="true" tabindex="-1"></a><span class="fu">p2dis_inc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="tpt_model2_files/figure-html/unnamed-chunk-58-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+      S      I1      I2       D 
+79678.0   316.8 19683.2   322.0 
+
+[[2]]
+       alpha         beta        sigma       delta2 
+5.465839e-01 1.985216e-05 1.091077e+00 8.941636e-04 </code></pre>
+</div>
+</div>
 </section>
 </section>
 </section>
