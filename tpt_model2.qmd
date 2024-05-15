@@ -1191,15 +1191,35 @@ par(opar)
 
 ### Serial SIID
 
-![Flow diagram of a minimalist SID model.](SIsIfD.png){width=320 #fig-SIID}
+![Flow diagram of a minimalist SID model.](SIID2.png){width=320 #fig-SIID}
 
 #### Dynamics
 
 $$
 \begin{align} 
-  \frac{dS}{dt} &=  \gamma_s I_s + \gamma_f I_f + \alpha D - (1 - p\pi)\beta D S\\
-  \frac{dI_s}{dt} &=  (1 - p) \beta D S - (\gamma_s + \delta_s) I_s \\
-  \frac{dI_f}{dt} &=  (1-\pi) p \beta D S - (\gamma_f + \delta_f) I_f  \\
-  \frac{dD}{dt} &= \delta_s I_s + \delta_f I_f - \alpha D
+  \frac{dS}{dt}   &= \gamma_1 I_1 + \gamma_2 I_2 + \alpha D - p\beta DS  \\
+  \frac{dI_1}{dt} &= p\beta DS - (\gamma_1 + \delta_1 + \sigma)I_1       \\
+  \frac{dI_2}{dt} &= \sigma I_2 - (\delta_2 + \gamma_2) I_2 \\
+  \frac{dD}{dt}   &= \delta_1 I_1 + \delta_2 I_2 - \alpha D
 \end{align}
 $$
+
+#### Equilibrium
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
