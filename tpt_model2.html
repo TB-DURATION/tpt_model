@@ -1522,7 +1522,7 @@ Figure&nbsp;3: Flow diagram of a minimalist SID model.
 <section id="prophylaxis-2" class="level4" data-number="5.3.4">
 <h4 data-number="5.3.4" class="anchored" data-anchor-id="prophylaxis-2"><span class="header-section-number">5.3.4</span> Prophylaxis</h4>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>p2dis_inc <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>make_p_effect <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
 <span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">I0 =</span> <span class="fl">2e4</span>,</span>
 <span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">D0 =</span> <span class="dv">322</span>,</span>
 <span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">di =</span> <span class="dv">176</span>,</span>
@@ -1531,81 +1531,27 @@ Figure&nbsp;3: Flow diagram of a minimalist SID model.
 <span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
 <span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
 <span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="fl">1e5</span>,</span>
-<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">rates =</span> <span class="fu">c</span>(.<span class="dv">02</span>, .<span class="dv">1</span>, .<span class="dv">2</span>),</span>
-<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> .<span class="dv">1</span>,</span>
-<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="dv">2025</span> <span class="sc">+</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">30</span>),</span>
-<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">eps =</span> <span class="dv">5</span>, <span class="at">xl =</span> <span class="dv">2048</span>, <span class="at">yl =</span> <span class="dv">175</span>,</span>
-<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">lgnd =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">show_rates =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">grid =</span> <span class="cn">FALSE</span>) {</span>
-<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a>  d1 <span class="ot">&lt;-</span> x <span class="sc">*</span> di</span>
-<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a>  p_val <span class="ot">&lt;-</span> <span class="fu">siid2_param_val</span>(I0, D0, d1, di <span class="sc">-</span> d1, delta1, gamma1, gamma2, N)</span>
+<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">2025</span>, <span class="dv">2030</span>)) {</span>
+<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a>  d1 <span class="ot">&lt;-</span> x <span class="sc">*</span> di</span>
+<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a>  p_val <span class="ot">&lt;-</span> <span class="fu">siid2_param_val</span>(I0, D0, d1, di <span class="sc">-</span> d1, delta1, gamma1, gamma2, N)</span>
+<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a>  alpha  <span class="ot">&lt;-</span> p_val[[<span class="st">"alpha"</span>]]</span>
+<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>  beta   <span class="ot">&lt;-</span> p_val[[<span class="st">"beta"</span>]]</span>
+<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a>  sigma  <span class="ot">&lt;-</span> p_val[[<span class="st">"sigma"</span>]]</span>
+<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a>  delta2 <span class="ot">&lt;-</span> p_val[[<span class="st">"delta2"</span>]]</span>
+<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a>  start_val <span class="ot">&lt;-</span> <span class="fu">siid2_equ</span>(N, <span class="dv">1</span>, beta, sigma, alpha, gamma1, gamma2, delta1, delta2)</span>
 <span id="cb81-21"><a href="#cb81-21" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>  alpha  <span class="ot">&lt;-</span> p_val[[<span class="st">"alpha"</span>]]</span>
-<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a>  beta   <span class="ot">&lt;-</span> p_val[[<span class="st">"beta"</span>]]</span>
-<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a>  sigma  <span class="ot">&lt;-</span> p_val[[<span class="st">"sigma"</span>]]</span>
-<span id="cb81-25"><a href="#cb81-25" aria-hidden="true" tabindex="-1"></a>  delta2 <span class="ot">&lt;-</span> p_val[[<span class="st">"delta2"</span>]]</span>
-<span id="cb81-26"><a href="#cb81-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-27"><a href="#cb81-27" aria-hidden="true" tabindex="-1"></a>  start_val <span class="ot">&lt;-</span> <span class="fu">siid2_equ</span>(N, <span class="dv">1</span>, beta, sigma, alpha, gamma1, gamma2, delta1, delta2)</span>
-<span id="cb81-28"><a href="#cb81-28" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-29"><a href="#cb81-29" aria-hidden="true" tabindex="-1"></a>  p_effect <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
-<span id="cb81-30"><a href="#cb81-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">siid2_dyn</span>(N, start_val[[<span class="st">"I1"</span>]], start_val[[<span class="st">"I2"</span>]], start_val[[<span class="st">"D"</span>]],</span>
-<span id="cb81-31"><a href="#cb81-31" aria-hidden="true" tabindex="-1"></a>              p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) <span class="sc">|&gt;</span> </span>
-<span id="cb81-32"><a href="#cb81-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">d =</span> delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2)</span>
-<span id="cb81-33"><a href="#cb81-33" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb81-34"><a href="#cb81-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-35"><a href="#cb81-35" aria-hidden="true" tabindex="-1"></a>  p_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>)</span>
-<span id="cb81-36"><a href="#cb81-36" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-37"><a href="#cb81-37" aria-hidden="true" tabindex="-1"></a>  maxt <span class="ot">&lt;-</span> <span class="fu">max</span>(times)</span>
-<span id="cb81-38"><a href="#cb81-38" aria-hidden="true" tabindex="-1"></a>  mint <span class="ot">&lt;-</span> <span class="fu">min</span>(times)</span>
-<span id="cb81-39"><a href="#cb81-39" aria-hidden="true" tabindex="-1"></a>  minx <span class="ot">&lt;-</span> mint <span class="sc">-</span> eps</span>
-<span id="cb81-40"><a href="#cb81-40" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-41"><a href="#cb81-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(minx, maxt), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, di),</span>
-<span id="cb81-42"><a href="#cb81-42" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"year"</span>, <span class="at">ylab =</span> <span class="st">"(/year/100,000)"</span>)</span>
-<span id="cb81-43"><a href="#cb81-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mtext</span>(<span class="st">"disease incidence"</span>, <span class="dv">2</span>, <span class="fl">2.25</span>)</span>
-<span id="cb81-44"><a href="#cb81-44" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-45"><a href="#cb81-45" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (grid) {</span>
-<span id="cb81-46"><a href="#cb81-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">pretty</span>(minx<span class="sc">:</span>maxt), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
-<span id="cb81-47"><a href="#cb81-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">pretty</span>(<span class="dv">0</span><span class="sc">:</span>di), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
-<span id="cb81-48"><a href="#cb81-48" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb81-49"><a href="#cb81-49" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-50"><a href="#cb81-50" aria-hidden="true" tabindex="-1"></a>  cols <span class="ot">&lt;-</span> <span class="fu">spectral</span>(<span class="fu">length</span>(p_vals))</span>
-<span id="cb81-51"><a href="#cb81-51" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-52"><a href="#cb81-52" aria-hidden="true" tabindex="-1"></a>  p_vals <span class="sc">|&gt;</span> </span>
-<span id="cb81-53"><a href="#cb81-53" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(p_effect) <span class="sc">|&gt;</span> </span>
-<span id="cb81-54"><a href="#cb81-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">walk2</span>(<span class="fu">rev</span>(cols), <span class="sc">~</span> <span class="fu">with</span>(.x, <span class="fu">lines2</span>(time, d, <span class="at">col =</span> .y)))</span>
-<span id="cb81-55"><a href="#cb81-55" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-56"><a href="#cb81-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">segments</span>(minx, di, mint, di, <span class="at">col =</span> cols[<span class="dv">1</span>], <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb81-57"><a href="#cb81-57" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-58"><a href="#cb81-58" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (show_rates) {</span>
-<span id="cb81-59"><a href="#cb81-59" aria-hidden="true" tabindex="-1"></a>    xs <span class="ot">&lt;-</span> <span class="fu">seq</span>(mint, maxt, by)</span>
-<span id="cb81-60"><a href="#cb81-60" aria-hidden="true" tabindex="-1"></a>    <span class="fu">walk2</span>(rates, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>,</span>
-<span id="cb81-61"><a href="#cb81-61" aria-hidden="true" tabindex="-1"></a>          <span class="sc">~</span> <span class="fu">lines2</span>(xs, di <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span> <span class="fu">find_rate</span>(.x) <span class="sc">*</span> (xs <span class="sc">-</span> mint)), <span class="at">lty =</span> .y))</span>
-<span id="cb81-62"><a href="#cb81-62" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb81-63"><a href="#cb81-63" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb81-64"><a href="#cb81-64" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (lgnd) {</span>
-<span id="cb81-65"><a href="#cb81-65" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">col =</span> cols, <span class="at">title =</span> <span class="st">"1 - p"</span>, <span class="at">lwd =</span> <span class="dv">2</span>,</span>
-<span id="cb81-66"><a href="#cb81-66" aria-hidden="true" tabindex="-1"></a>           <span class="at">bty =</span> <span class="fu">ifelse</span>(grid, <span class="st">"o"</span>, <span class="st">"n"</span>),</span>
-<span id="cb81-67"><a href="#cb81-67" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend =</span> <span class="fu">formatC</span>(<span class="fu">round</span>(p_vals, <span class="dv">2</span>), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">format =</span> <span class="st">"f"</span>))</span>
-<span id="cb81-68"><a href="#cb81-68" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend</span>(xl, yl, <span class="at">lty =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">title =</span> <span class="st">"annual decrease"</span>, <span class="at">lwd =</span> <span class="dv">2</span>,</span>
-<span id="cb81-69"><a href="#cb81-69" aria-hidden="true" tabindex="-1"></a>           <span class="at">bty =</span> <span class="fu">ifelse</span>(grid, <span class="st">"o"</span>, <span class="st">"n"</span>),</span>
-<span id="cb81-70"><a href="#cb81-70" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend =</span> <span class="fu">paste0</span>(<span class="fu">formatC</span>(<span class="fu">round</span>(rates, <span class="dv">2</span>), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">format =</span> <span class="st">"f"</span>), <span class="st">"%"</span>))</span>
-<span id="cb81-71"><a href="#cb81-71" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb81-72"><a href="#cb81-72" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb81-73"><a href="#cb81-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-74"><a href="#cb81-74" aria-hidden="true" tabindex="-1"></a><span class="fu">p2dis_inc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="tpt_model2_files/figure-html/unnamed-chunk-57-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
-</figure>
-</div>
-</div>
+<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">function</span>(p) {</span>
+<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">siid2_dyn</span>(N, start_val[[<span class="st">"I1"</span>]], start_val[[<span class="st">"I2"</span>]], start_val[[<span class="st">"D"</span>]],</span>
+<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a>              p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) <span class="sc">|&gt;</span> </span>
+<span id="cb81-25"><a href="#cb81-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">d =</span> delta1 <span class="sc">*</span> I1 <span class="sc">+</span> delta2 <span class="sc">*</span> I2)</span>
+<span id="cb81-26"><a href="#cb81-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb81-27"><a href="#cb81-27" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>dashboard_epi <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>p2dis_inc <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
 <span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">I0 =</span> <span class="fl">2e4</span>,</span>
 <span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">D0 =</span> <span class="dv">322</span>,</span>
 <span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">di =</span> <span class="dv">176</span>,</span>
@@ -1614,61 +1560,57 @@ Figure&nbsp;3: Flow diagram of a minimalist SID model.
 <span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
 <span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
 <span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="fl">1e5</span>,</span>
-<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">rates =</span> <span class="fu">c</span>(.<span class="dv">02</span>, .<span class="dv">1</span>, .<span class="dv">2</span>),</span>
-<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> .<span class="dv">1</span>,</span>
-<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="dv">2025</span> <span class="sc">+</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">30</span>),</span>
-<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">eps =</span> <span class="dv">2</span>) {</span>
-<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. duration of "recent infections"</span></span>
-<span id="cb82-16"><a href="#cb82-16" aria-hidden="true" tabindex="-1"></a>  d1 <span class="ot">&lt;-</span> x <span class="sc">*</span> di</span>
-<span id="cb82-17"><a href="#cb82-17" aria-hidden="true" tabindex="-1"></a>  p_val <span class="ot">&lt;-</span> <span class="fu">siid2_param_val</span>(I0, D0, d1, di <span class="sc">-</span> d1, delta1, gamma1, gamma2, N)</span>
+<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_vals =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>),</span>
+<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">rates =</span> <span class="fu">c</span>(.<span class="dv">02</span>, .<span class="dv">1</span>, .<span class="dv">2</span>),</span>
+<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> .<span class="dv">1</span>,</span>
+<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="dv">2025</span> <span class="sc">+</span> <span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">30</span>),</span>
+<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">eps =</span> <span class="dv">5</span>, <span class="at">xl =</span> <span class="dv">2048</span>, <span class="at">yl =</span> <span class="dv">175</span>,</span>
+<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">lgnd =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb82-16"><a href="#cb82-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">show_rates =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb82-17"><a href="#cb82-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">grid =</span> <span class="cn">FALSE</span>) {</span>
 <span id="cb82-18"><a href="#cb82-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb82-19"><a href="#cb82-19" aria-hidden="true" tabindex="-1"></a>  lambda <span class="ot">&lt;-</span> delta1 <span class="sc">+</span> p_val[[<span class="st">"sigma"</span>]] <span class="sc">+</span> gamma1</span>
-<span id="cb82-20"><a href="#cb82-20" aria-hidden="true" tabindex="-1"></a>  xmax <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">qexp</span>(.<span class="dv">99</span>, lambda))</span>
-<span id="cb82-21"><a href="#cb82-21" aria-hidden="true" tabindex="-1"></a>  xs <span class="ot">&lt;-</span> <span class="fu">seq2</span>(<span class="dv">0</span>, xmax)</span>
-<span id="cb82-22"><a href="#cb82-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, xmax), <span class="at">ylim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>,</span>
-<span id="cb82-23"><a href="#cb82-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"leaving recent infections (years)"</span>,</span>
-<span id="cb82-24"><a href="#cb82-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"cumulative probability"</span>)</span>
-<span id="cb82-25"><a href="#cb82-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">pretty</span>(<span class="dv">0</span><span class="sc">:</span>xmax), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
-<span id="cb82-26"><a href="#cb82-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
-<span id="cb82-27"><a href="#cb82-27" aria-hidden="true" tabindex="-1"></a>  ys <span class="ot">&lt;-</span> <span class="fu">pexp</span>(xs, lambda)</span>
-<span id="cb82-28"><a href="#cb82-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys <span class="sc">*</span> gamma1 <span class="sc">/</span> lambda, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(xs)), <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">3</span>, .<span class="dv">1</span>))</span>
-<span id="cb82-29"><a href="#cb82-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys <span class="sc">*</span> (gamma1 <span class="sc">+</span> delta1) <span class="sc">/</span> lambda, ys, <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">4</span>, .<span class="dv">1</span>))</span>
-<span id="cb82-30"><a href="#cb82-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys <span class="sc">*</span> (gamma1 <span class="sc">+</span> delta1) <span class="sc">/</span> lambda, ys <span class="sc">*</span> gamma1 <span class="sc">/</span> lambda,</span>
-<span id="cb82-31"><a href="#cb82-31" aria-hidden="true" tabindex="-1"></a>           <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">2</span>, .<span class="dv">1</span>))</span>
-<span id="cb82-32"><a href="#cb82-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys, <span class="at">col =</span> <span class="dv">4</span>)</span>
-<span id="cb82-33"><a href="#cb82-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys <span class="sc">*</span> (gamma1 <span class="sc">+</span> delta1) <span class="sc">/</span> lambda, <span class="at">col =</span> <span class="dv">2</span>)</span>
-<span id="cb82-34"><a href="#cb82-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys <span class="sc">*</span> gamma1 <span class="sc">/</span> lambda, <span class="at">col =</span> <span class="dv">3</span>)</span>
-<span id="cb82-35"><a href="#cb82-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-36"><a href="#cb82-36" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. R0 and proba to develop TB in the long run</span></span>
-<span id="cb82-37"><a href="#cb82-37" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> p_val[[<span class="st">"alpha"</span>]]</span>
-<span id="cb82-38"><a href="#cb82-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">ylim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>, <span class="at">axes =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb82-39"><a href="#cb82-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">text</span>(.<span class="dv">8</span>, .<span class="dv">53</span>, <span class="fu">paste</span>(<span class="st">"R0 ="</span>, <span class="fu">round</span>(N <span class="sc">*</span> p_val[[<span class="st">"beta"</span>]] <span class="sc">/</span> alpha, <span class="dv">2</span>)), <span class="dv">1</span>)</span>
-<span id="cb82-40"><a href="#cb82-40" aria-hidden="true" tabindex="-1"></a>  delta2 <span class="ot">&lt;-</span> p_val[[<span class="st">"delta2"</span>]]</span>
-<span id="cb82-41"><a href="#cb82-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">text</span>(.<span class="dv">8</span>, .<span class="dv">38</span>, <span class="fu">paste</span>(<span class="st">"Pr[dis old inf] ="</span>, <span class="fu">round</span>(delta2 <span class="sc">/</span> (delta2 <span class="sc">+</span> gamma2), <span class="dv">2</span>)), <span class="dv">1</span>)</span>
-<span id="cb82-42"><a href="#cb82-42" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb82-43"><a href="#cb82-43" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. duration of disease</span></span>
-<span id="cb82-44"><a href="#cb82-44" aria-hidden="true" tabindex="-1"></a>  xmax <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">qexp</span>(.<span class="dv">99</span>, alpha))</span>
-<span id="cb82-45"><a href="#cb82-45" aria-hidden="true" tabindex="-1"></a>  xs <span class="ot">&lt;-</span> <span class="fu">seq2</span>(<span class="dv">0</span>, xmax)</span>
-<span id="cb82-46"><a href="#cb82-46" aria-hidden="true" tabindex="-1"></a>  ys <span class="ot">&lt;-</span> <span class="fu">dexp</span>(xs, alpha)</span>
-<span id="cb82-47"><a href="#cb82-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, xmax), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(ys)),</span>
-<span id="cb82-48"><a href="#cb82-48" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"duration of disease (years)"</span>,</span>
-<span id="cb82-49"><a href="#cb82-49" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"density of probability"</span>)</span>
-<span id="cb82-50"><a href="#cb82-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">pretty</span>(<span class="dv">0</span><span class="sc">:</span>xmax), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
-<span id="cb82-51"><a href="#cb82-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
-<span id="cb82-52"><a href="#cb82-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(xs)), <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">4</span>, .<span class="dv">1</span>))</span>
-<span id="cb82-53"><a href="#cb82-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys, <span class="at">col =</span> <span class="dv">4</span>)</span>
-<span id="cb82-54"><a href="#cb82-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="dv">1</span> <span class="sc">/</span> alpha, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb82-55"><a href="#cb82-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">/</span> alpha, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
-<span id="cb82-56"><a href="#cb82-56" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb82-57"><a href="#cb82-57" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. decrease in disease incidence    </span></span>
-<span id="cb82-58"><a href="#cb82-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">p2dis_inc</span>(I0, D0, di, x, delta1, gamma1, gamma2, N, rates, by, times, eps,</span>
-<span id="cb82-59"><a href="#cb82-59" aria-hidden="true" tabindex="-1"></a>            <span class="at">lgnd =</span> <span class="cn">FALSE</span>, <span class="at">grid =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb82-60"><a href="#cb82-60" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb82-19"><a href="#cb82-19" aria-hidden="true" tabindex="-1"></a>  p_effect <span class="ot">&lt;-</span> <span class="fu">make_p_effect</span>(I0, D0, di, x, delta1, gamma1, gamma2, N, times)</span>
+<span id="cb82-20"><a href="#cb82-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-21"><a href="#cb82-21" aria-hidden="true" tabindex="-1"></a>  maxt <span class="ot">&lt;-</span> <span class="fu">max</span>(times)</span>
+<span id="cb82-22"><a href="#cb82-22" aria-hidden="true" tabindex="-1"></a>  mint <span class="ot">&lt;-</span> <span class="fu">min</span>(times)</span>
+<span id="cb82-23"><a href="#cb82-23" aria-hidden="true" tabindex="-1"></a>  minx <span class="ot">&lt;-</span> mint <span class="sc">-</span> eps</span>
+<span id="cb82-24"><a href="#cb82-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-25"><a href="#cb82-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(minx, maxt), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, di),</span>
+<span id="cb82-26"><a href="#cb82-26" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"year"</span>, <span class="at">ylab =</span> <span class="st">"(/year/100,000)"</span>)</span>
+<span id="cb82-27"><a href="#cb82-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mtext</span>(<span class="st">"disease incidence"</span>, <span class="dv">2</span>, <span class="fl">2.25</span>)</span>
+<span id="cb82-28"><a href="#cb82-28" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-29"><a href="#cb82-29" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (grid) {</span>
+<span id="cb82-30"><a href="#cb82-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">pretty</span>(minx<span class="sc">:</span>maxt), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb82-31"><a href="#cb82-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">pretty</span>(<span class="dv">0</span><span class="sc">:</span>di), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb82-32"><a href="#cb82-32" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb82-33"><a href="#cb82-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-34"><a href="#cb82-34" aria-hidden="true" tabindex="-1"></a>  cols <span class="ot">&lt;-</span> <span class="fu">spectral</span>(<span class="fu">length</span>(p_vals))</span>
+<span id="cb82-35"><a href="#cb82-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-36"><a href="#cb82-36" aria-hidden="true" tabindex="-1"></a>  p_vals <span class="sc">|&gt;</span> </span>
+<span id="cb82-37"><a href="#cb82-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(p_effect) <span class="sc">|&gt;</span> </span>
+<span id="cb82-38"><a href="#cb82-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">walk2</span>(<span class="fu">rev</span>(cols), <span class="sc">~</span> <span class="fu">with</span>(.x, <span class="fu">lines2</span>(time, d, <span class="at">col =</span> .y)))</span>
+<span id="cb82-39"><a href="#cb82-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-40"><a href="#cb82-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">segments</span>(minx, di, mint, di, <span class="at">col =</span> cols[<span class="dv">1</span>], <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb82-41"><a href="#cb82-41" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-42"><a href="#cb82-42" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (show_rates) {</span>
+<span id="cb82-43"><a href="#cb82-43" aria-hidden="true" tabindex="-1"></a>    xs <span class="ot">&lt;-</span> <span class="fu">seq</span>(mint, maxt, by)</span>
+<span id="cb82-44"><a href="#cb82-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">walk2</span>(rates, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>,</span>
+<span id="cb82-45"><a href="#cb82-45" aria-hidden="true" tabindex="-1"></a>          <span class="sc">~</span> <span class="fu">lines2</span>(xs, di <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span> <span class="fu">find_rate</span>(.x) <span class="sc">*</span> (xs <span class="sc">-</span> mint)), <span class="at">lty =</span> .y))</span>
+<span id="cb82-46"><a href="#cb82-46" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb82-47"><a href="#cb82-47" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-48"><a href="#cb82-48" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (lgnd) {</span>
+<span id="cb82-49"><a href="#cb82-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">col =</span> cols, <span class="at">title =</span> <span class="st">"1 - p"</span>, <span class="at">lwd =</span> <span class="dv">2</span>,</span>
+<span id="cb82-50"><a href="#cb82-50" aria-hidden="true" tabindex="-1"></a>           <span class="at">bty =</span> <span class="fu">ifelse</span>(grid, <span class="st">"o"</span>, <span class="st">"n"</span>),</span>
+<span id="cb82-51"><a href="#cb82-51" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend =</span> <span class="fu">formatC</span>(<span class="fu">round</span>(p_vals, <span class="dv">2</span>), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">format =</span> <span class="st">"f"</span>))</span>
+<span id="cb82-52"><a href="#cb82-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend</span>(xl, yl, <span class="at">lty =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">title =</span> <span class="st">"annual decrease"</span>, <span class="at">lwd =</span> <span class="dv">2</span>,</span>
+<span id="cb82-53"><a href="#cb82-53" aria-hidden="true" tabindex="-1"></a>           <span class="at">bty =</span> <span class="fu">ifelse</span>(grid, <span class="st">"o"</span>, <span class="st">"n"</span>),</span>
+<span id="cb82-54"><a href="#cb82-54" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend =</span> <span class="fu">paste0</span>(<span class="fu">formatC</span>(<span class="fu">round</span>(rates, <span class="dv">2</span>), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">format =</span> <span class="st">"f"</span>), <span class="st">"%"</span>))</span>
+<span id="cb82-55"><a href="#cb82-55" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb82-56"><a href="#cb82-56" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Let’s try it:</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>opar <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">plt =</span> <span class="fu">c</span>(.<span class="dv">25</span>, .<span class="dv">95</span>, .<span class="dv">25</span>, .<span class="dv">9</span>))</span>
-<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dashboard_epi</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="fu">p2dis_inc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -1676,7 +1618,199 @@ Figure&nbsp;3: Flow diagram of a minimalist SID model.
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(opar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>p2dec_rate <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">I0 =</span> <span class="fl">2e4</span>,</span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">D0 =</span> <span class="dv">322</span>,</span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">di =</span> <span class="dv">176</span>,</span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> .<span class="dv">9</span>,</span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">delta1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="fl">1e5</span>,</span>
+<span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_vals =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>),</span>
+<span id="cb84-11"><a href="#cb84-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">rates =</span> <span class="fu">c</span>(.<span class="dv">02</span>, .<span class="dv">1</span>, .<span class="dv">2</span>),</span>
+<span id="cb84-12"><a href="#cb84-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> .<span class="dv">1</span>,</span>
+<span id="cb84-13"><a href="#cb84-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">2025</span>, <span class="dv">2030</span>),</span>
+<span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">maxt =</span> <span class="cn">NULL</span>,</span>
+<span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">xl =</span> <span class="dv">2048</span>, <span class="at">yl =</span> <span class="dv">175</span>,</span>
+<span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">lgnd =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb84-17"><a href="#cb84-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">show_rates =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb84-18"><a href="#cb84-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">grid =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb84-19"><a href="#cb84-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-20"><a href="#cb84-20" aria-hidden="true" tabindex="-1"></a>  p_effect <span class="ot">&lt;-</span> <span class="fu">make_p_effect</span>(I0, D0, di, x, delta1, gamma1, gamma2, N, times)</span>
+<span id="cb84-21"><a href="#cb84-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-22"><a href="#cb84-22" aria-hidden="true" tabindex="-1"></a>  decrease_rate <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb84-23"><a href="#cb84-23" aria-hidden="true" tabindex="-1"></a>    dt <span class="ot">&lt;-</span> <span class="fu">diff</span>(x<span class="sc">$</span>time)[<span class="dv">1</span>]</span>
+<span id="cb84-24"><a href="#cb84-24" aria-hidden="true" tabindex="-1"></a>    x <span class="sc">|&gt;</span> </span>
+<span id="cb84-25"><a href="#cb84-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">time =</span> time <span class="sc">+</span> dt,</span>
+<span id="cb84-26"><a href="#cb84-26" aria-hidden="true" tabindex="-1"></a>             <span class="at">d    =</span> <span class="fu">c</span>(<span class="fu">diff</span>(d) <span class="sc">/</span> <span class="fu">head</span>(d, <span class="sc">-</span><span class="dv">1</span>), <span class="cn">NA</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb84-27"><a href="#cb84-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(<span class="fu">row_number</span>() <span class="sc">&lt;=</span> <span class="fu">n</span>() <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb84-28"><a href="#cb84-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">d =</span> <span class="dv">100</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(d <span class="sc">/</span> dt)))</span>
+<span id="cb84-29"><a href="#cb84-29" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb84-30"><a href="#cb84-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-31"><a href="#cb84-31" aria-hidden="true" tabindex="-1"></a>  cols <span class="ot">&lt;-</span> <span class="fu">spectral</span>(<span class="fu">length</span>(p_vals))</span>
+<span id="cb84-32"><a href="#cb84-32" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-33"><a href="#cb84-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(maxt)) maxt <span class="ot">&lt;-</span> <span class="fu">max</span>(times)</span>
+<span id="cb84-34"><a href="#cb84-34" aria-hidden="true" tabindex="-1"></a>  mint <span class="ot">&lt;-</span> <span class="fu">min</span>(times)</span>
+<span id="cb84-35"><a href="#cb84-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-36"><a href="#cb84-36" aria-hidden="true" tabindex="-1"></a>  tmp <span class="ot">&lt;-</span> p_vals <span class="sc">|&gt;</span> </span>
+<span id="cb84-37"><a href="#cb84-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(p_effect) <span class="sc">|&gt;</span> </span>
+<span id="cb84-38"><a href="#cb84-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(decrease_rate)</span>
+<span id="cb84-39"><a href="#cb84-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-40"><a href="#cb84-40" aria-hidden="true" tabindex="-1"></a>  ymax <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">map_dbl</span>(tmp, <span class="sc">~</span> <span class="fu">max</span>(.x<span class="sc">$</span>d)))</span>
+<span id="cb84-41"><a href="#cb84-41" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-42"><a href="#cb84-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(mint, maxt), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, ymax),</span>
+<span id="cb84-43"><a href="#cb84-43" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"year"</span>, <span class="at">ylab =</span> <span class="st">"% decrease / year"</span>)</span>
+<span id="cb84-44"><a href="#cb84-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-45"><a href="#cb84-45" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (grid) {</span>
+<span id="cb84-46"><a href="#cb84-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">pretty</span>(mint<span class="sc">:</span>maxt), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb84-47"><a href="#cb84-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">pretty</span>(<span class="fu">c</span>(<span class="dv">0</span>, ymax)), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb84-48"><a href="#cb84-48" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb84-49"><a href="#cb84-49" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-50"><a href="#cb84-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">walk2</span>(tmp, <span class="fu">rev</span>(cols), <span class="sc">~</span> <span class="fu">with</span>(.x, <span class="fu">lines2</span>(time, d, <span class="at">col =</span> .y)))</span>
+<span id="cb84-51"><a href="#cb84-51" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-52"><a href="#cb84-52" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (show_rates) <span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">100</span> <span class="sc">*</span> rates, <span class="at">lty =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb84-53"><a href="#cb84-53" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb84-54"><a href="#cb84-54" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (lgnd) {</span>
+<span id="cb84-55"><a href="#cb84-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">col =</span> cols, <span class="at">title =</span> <span class="st">"1 - p"</span>, <span class="at">lwd =</span> <span class="dv">2</span>,</span>
+<span id="cb84-56"><a href="#cb84-56" aria-hidden="true" tabindex="-1"></a>           <span class="at">bty =</span> <span class="fu">ifelse</span>(grid, <span class="st">"o"</span>, <span class="st">"n"</span>),</span>
+<span id="cb84-57"><a href="#cb84-57" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend =</span> <span class="fu">formatC</span>(<span class="fu">round</span>(p_vals, <span class="dv">2</span>), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">format =</span> <span class="st">"f"</span>))</span>
+<span id="cb84-58"><a href="#cb84-58" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb84-59"><a href="#cb84-59" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb84-60"><a href="#cb84-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-61"><a href="#cb84-61" aria-hidden="true" tabindex="-1"></a><span class="fu">p2dec_rate</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="tpt_model2_files/figure-html/unnamed-chunk-60-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>time2val <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">I0 =</span> <span class="fl">2e4</span>,</span>
+<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">D0 =</span> <span class="dv">322</span>,</span>
+<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">di =</span> <span class="dv">176</span>,</span>
+<span id="cb85-5"><a href="#cb85-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> .<span class="dv">9</span>,</span>
+<span id="cb85-6"><a href="#cb85-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">delta1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb85-7"><a href="#cb85-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb85-8"><a href="#cb85-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb85-9"><a href="#cb85-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="fl">1e5</span>,</span>
+<span id="cb85-10"><a href="#cb85-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">target_vals =</span> <span class="cn">NULL</span>,</span>
+<span id="cb85-11"><a href="#cb85-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="fu">seq2</span>(<span class="dv">2025</span>, <span class="dv">2055</span>)) {</span>
+<span id="cb85-12"><a href="#cb85-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-13"><a href="#cb85-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(target_vals)) target_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(.<span class="dv">1</span>, .<span class="dv">9</span>, .<span class="dv">1</span>) <span class="sc">*</span> di</span>
+<span id="cb85-14"><a href="#cb85-14" aria-hidden="true" tabindex="-1"></a>  cols <span class="ot">&lt;-</span> <span class="fu">rev</span>(<span class="fu">spectral</span>(<span class="fu">length</span>(target_vals)))</span>
+<span id="cb85-15"><a href="#cb85-15" aria-hidden="true" tabindex="-1"></a>  p_effect <span class="ot">&lt;-</span> <span class="fu">make_p_effect</span>(I0, D0, di, x, delta1, gamma1, gamma2, N, times)</span>
+<span id="cb85-16"><a href="#cb85-16" aria-hidden="true" tabindex="-1"></a>  d_vals <span class="ot">&lt;-</span> <span class="fu">head</span>(<span class="fu">seq2</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb85-17"><a href="#cb85-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb85-18"><a href="#cb85-18" aria-hidden="true" tabindex="-1"></a>  compute_data <span class="ot">&lt;-</span> <span class="cf">function</span>(target) {</span>
+<span id="cb85-19"><a href="#cb85-19" aria-hidden="true" tabindex="-1"></a>    time_vals <span class="ot">&lt;-</span> <span class="fu">unlist</span>(</span>
+<span id="cb85-20"><a href="#cb85-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mclapply2</span>(d_vals, <span class="cf">function</span>(x) <span class="fu">with</span>(<span class="fu">p_effect</span>(x), <span class="fu">approx</span>(d, time, target)<span class="sc">$</span>y)))</span>
+<span id="cb85-21"><a href="#cb85-21" aria-hidden="true" tabindex="-1"></a>    sel <span class="ot">&lt;-</span> <span class="sc">!</span> <span class="fu">is.na</span>(time_vals)</span>
+<span id="cb85-22"><a href="#cb85-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">d =</span> <span class="dv">1</span> <span class="sc">-</span> d_vals[sel], <span class="at">t =</span> time_vals[sel])</span>
+<span id="cb85-23"><a href="#cb85-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb85-24"><a href="#cb85-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb85-25"><a href="#cb85-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">ylim =</span> <span class="fu">range</span>(times),</span>
+<span id="cb85-26"><a href="#cb85-26" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"efficacy of prophylaxis"</span>,</span>
+<span id="cb85-27"><a href="#cb85-27" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"year reaching target"</span>)</span>
+<span id="cb85-28"><a href="#cb85-28" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb85-29"><a href="#cb85-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">pretty</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb85-30"><a href="#cb85-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">pretty</span>(times), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb85-31"><a href="#cb85-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb85-32"><a href="#cb85-32" aria-hidden="true" tabindex="-1"></a>  target_vals <span class="sc">|&gt;</span></span>
+<span id="cb85-33"><a href="#cb85-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(compute_data) <span class="sc">|&gt;</span> </span>
+<span id="cb85-34"><a href="#cb85-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">walk2</span>(cols, <span class="sc">~</span> <span class="fu">with</span>(.x, <span class="fu">lines2</span>(d, t, <span class="at">col =</span> .y)))</span>
+<span id="cb85-35"><a href="#cb85-35" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Dashboard:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>dashboard_epi <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">I0 =</span> <span class="fl">2e4</span>,</span>
+<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">D0 =</span> <span class="dv">322</span>,</span>
+<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">di =</span> <span class="dv">176</span>,</span>
+<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> .<span class="dv">9</span>,</span>
+<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">delta1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma1 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma2 =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">60</span>,</span>
+<span id="cb86-9"><a href="#cb86-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="fl">1e5</span>,</span>
+<span id="cb86-10"><a href="#cb86-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_vals =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>),</span>
+<span id="cb86-11"><a href="#cb86-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">target_vals =</span> <span class="cn">NULL</span>,</span>
+<span id="cb86-12"><a href="#cb86-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">rates =</span> <span class="fu">c</span>(.<span class="dv">02</span>, .<span class="dv">1</span>, .<span class="dv">2</span>),</span>
+<span id="cb86-13"><a href="#cb86-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> .<span class="dv">1</span>,</span>
+<span id="cb86-14"><a href="#cb86-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">times1 =</span> <span class="fu">seq2</span>(<span class="dv">2025</span>, <span class="dv">2055</span>),</span>
+<span id="cb86-15"><a href="#cb86-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">times2 =</span> <span class="fu">seq2</span>(<span class="dv">2025</span>, <span class="dv">2030</span>),</span>
+<span id="cb86-16"><a href="#cb86-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">eps =</span> <span class="dv">2</span>) {</span>
+<span id="cb86-17"><a href="#cb86-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb86-18"><a href="#cb86-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. duration of "recent infections"</span></span>
+<span id="cb86-19"><a href="#cb86-19" aria-hidden="true" tabindex="-1"></a>  d1 <span class="ot">&lt;-</span> x <span class="sc">*</span> di</span>
+<span id="cb86-20"><a href="#cb86-20" aria-hidden="true" tabindex="-1"></a>  p_val <span class="ot">&lt;-</span> <span class="fu">siid2_param_val</span>(I0, D0, d1, di <span class="sc">-</span> d1, delta1, gamma1, gamma2, N)</span>
+<span id="cb86-21"><a href="#cb86-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb86-22"><a href="#cb86-22" aria-hidden="true" tabindex="-1"></a>  lambda <span class="ot">&lt;-</span> delta1 <span class="sc">+</span> p_val[[<span class="st">"sigma"</span>]] <span class="sc">+</span> gamma1</span>
+<span id="cb86-23"><a href="#cb86-23" aria-hidden="true" tabindex="-1"></a>  xmax <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">qexp</span>(.<span class="dv">99</span>, lambda))</span>
+<span id="cb86-24"><a href="#cb86-24" aria-hidden="true" tabindex="-1"></a>  xs <span class="ot">&lt;-</span> <span class="fu">seq2</span>(<span class="dv">0</span>, xmax)</span>
+<span id="cb86-25"><a href="#cb86-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, xmax), <span class="at">ylim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>,</span>
+<span id="cb86-26"><a href="#cb86-26" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"leaving recent infections (years)"</span>,</span>
+<span id="cb86-27"><a href="#cb86-27" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"cumulative probability"</span>)</span>
+<span id="cb86-28"><a href="#cb86-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">pretty</span>(<span class="dv">0</span><span class="sc">:</span>xmax), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb86-29"><a href="#cb86-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>), <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb86-30"><a href="#cb86-30" aria-hidden="true" tabindex="-1"></a>  ys <span class="ot">&lt;-</span> <span class="fu">pexp</span>(xs, lambda)</span>
+<span id="cb86-31"><a href="#cb86-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys <span class="sc">*</span> gamma1 <span class="sc">/</span> lambda, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(xs)), <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">3</span>, .<span class="dv">1</span>))</span>
+<span id="cb86-32"><a href="#cb86-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys <span class="sc">*</span> (gamma1 <span class="sc">+</span> delta1) <span class="sc">/</span> lambda, ys, <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">4</span>, .<span class="dv">1</span>))</span>
+<span id="cb86-33"><a href="#cb86-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys <span class="sc">*</span> (gamma1 <span class="sc">+</span> delta1) <span class="sc">/</span> lambda, ys <span class="sc">*</span> gamma1 <span class="sc">/</span> lambda,</span>
+<span id="cb86-34"><a href="#cb86-34" aria-hidden="true" tabindex="-1"></a>           <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">2</span>, .<span class="dv">1</span>))</span>
+<span id="cb86-35"><a href="#cb86-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys, <span class="at">col =</span> <span class="dv">4</span>)</span>
+<span id="cb86-36"><a href="#cb86-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys <span class="sc">*</span> (gamma1 <span class="sc">+</span> delta1) <span class="sc">/</span> lambda, <span class="at">col =</span> <span class="dv">2</span>)</span>
+<span id="cb86-37"><a href="#cb86-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys <span class="sc">*</span> gamma1 <span class="sc">/</span> lambda, <span class="at">col =</span> <span class="dv">3</span>)</span>
+<span id="cb86-38"><a href="#cb86-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-39"><a href="#cb86-39" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. R0 and proba to develop TB in the long run</span></span>
+<span id="cb86-40"><a href="#cb86-40" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> p_val[[<span class="st">"alpha"</span>]]</span>
+<span id="cb86-41"><a href="#cb86-41" aria-hidden="true" tabindex="-1"></a><span class="co">#  plot(NA, xlim = 0:1, ylim = 0:1, ann = FALSE, axes = FALSE)</span></span>
+<span id="cb86-42"><a href="#cb86-42" aria-hidden="true" tabindex="-1"></a><span class="co">#  text(.8, .53, paste("R0 =", round(N * p_val[["beta"]] / alpha, 2)), 1)</span></span>
+<span id="cb86-43"><a href="#cb86-43" aria-hidden="true" tabindex="-1"></a><span class="co">#  delta2 &lt;- p_val[["delta2"]]</span></span>
+<span id="cb86-44"><a href="#cb86-44" aria-hidden="true" tabindex="-1"></a><span class="co">#  text(.8, .38, paste("Pr[dis old inf] =", round(delta2 / (delta2 + gamma2), 2)), 1)</span></span>
+<span id="cb86-45"><a href="#cb86-45" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb86-46"><a href="#cb86-46" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. duration of disease</span></span>
+<span id="cb86-47"><a href="#cb86-47" aria-hidden="true" tabindex="-1"></a>  xmax <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">qexp</span>(.<span class="dv">99</span>, alpha))</span>
+<span id="cb86-48"><a href="#cb86-48" aria-hidden="true" tabindex="-1"></a>  xs <span class="ot">&lt;-</span> <span class="fu">seq2</span>(<span class="dv">0</span>, xmax)</span>
+<span id="cb86-49"><a href="#cb86-49" aria-hidden="true" tabindex="-1"></a>  ys <span class="ot">&lt;-</span> <span class="fu">dexp</span>(xs, alpha)</span>
+<span id="cb86-50"><a href="#cb86-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="cn">NA</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, xmax), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(ys)),</span>
+<span id="cb86-51"><a href="#cb86-51" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"duration of disease (years)"</span>,</span>
+<span id="cb86-52"><a href="#cb86-52" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"density of probability"</span>)</span>
+<span id="cb86-53"><a href="#cb86-53" aria-hidden="true" tabindex="-1"></a><span class="co">#  abline(v = pretty(0:xmax), col = "grey")</span></span>
+<span id="cb86-54"><a href="#cb86-54" aria-hidden="true" tabindex="-1"></a><span class="co">#  abline(h = pretty(c(0, max(ys))), col = "grey")</span></span>
+<span id="cb86-55"><a href="#cb86-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">polygon3</span>(xs, ys, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(xs)), <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="dv">4</span>, .<span class="dv">1</span>))</span>
+<span id="cb86-56"><a href="#cb86-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines2</span>(xs, ys, <span class="at">col =</span> <span class="dv">4</span>)</span>
+<span id="cb86-57"><a href="#cb86-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="dv">1</span> <span class="sc">/</span> alpha, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb86-58"><a href="#cb86-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">/</span> alpha, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb86-59"><a href="#cb86-59" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb86-60"><a href="#cb86-60" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. decrease in disease incidence    </span></span>
+<span id="cb86-61"><a href="#cb86-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">p2dis_inc</span>(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times1, eps,</span>
+<span id="cb86-62"><a href="#cb86-62" aria-hidden="true" tabindex="-1"></a>            <span class="at">lgnd =</span> <span class="cn">FALSE</span>, <span class="at">grid =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb86-63"><a href="#cb86-63" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb86-64"><a href="#cb86-64" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. decrease rate</span></span>
+<span id="cb86-65"><a href="#cb86-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">p2dec_rate</span>(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times2,</span>
+<span id="cb86-66"><a href="#cb86-66" aria-hidden="true" tabindex="-1"></a>             <span class="at">lgnd =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb86-67"><a href="#cb86-67" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb86-68"><a href="#cb86-68" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. time to target</span></span>
+<span id="cb86-69"><a href="#cb86-69" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(target_vals)) target_vals <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">25</span>, di, <span class="dv">25</span>)</span>
+<span id="cb86-70"><a href="#cb86-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">time2val</span>(I0, D0, di, x, delta1, gamma1, gamma2, N, target_vals, times1)</span>
+<span id="cb86-71"><a href="#cb86-71" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>opar <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">2</span>), <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">plt =</span> <span class="fu">c</span>(.<span class="dv">25</span>, .<span class="dv">95</span>, .<span class="dv">25</span>, .<span class="dv">9</span>))</span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dashboard_epi</span>()</span>
+<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(opar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="tpt_model2_files/figure-html/unnamed-chunk-63-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 </section>
