@@ -123,6 +123,32 @@ Color palette functions:
 spectral <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Spectral")))
 
 pur2gre <- colorRampPalette(c("purple", "green"))
+
+rgb2 <- function(...) rgb(..., maxColorValue = 255)
+
+yellows <- map_chr(list(
+  list(255, 241, 195),
+  list(246, 220, 138),
+  list(235, 200,  79),
+  list(204, 159,  44),
+  list(156, 120,  24),
+  list(107,  85,  19)), ~ do.call(rgb2, .x))
+
+reds <- map_chr(list(
+  list(250, 208, 206),
+  list(237, 164, 167),
+  list(222, 104, 102),
+  list(201,  62,  63),
+  list(156,  39,  38),
+  list(116,  24,  21)), ~ do.call(rgb2, .x))
+
+blues <- map_chr(list(
+  list(200, 231, 251),
+  list(157, 202, 235),
+  list( 87, 153, 209),
+  list(  1, 113, 178),
+  list(  5,  78, 145),
+  list(  3,  44,  92)), ~ do.call(rgb2, .x))
 ```
 
 A function that converts a percentage decrease per year into a rate:
@@ -1400,7 +1426,8 @@ p2dis_inc <- function(
     abline(h = pretty(0:di), col = "grey")
   }
   
-  cols <- spectral(length(p_vals))
+#  cols <- spectral(length(p_vals))
+  cols <- colorRampPalette(reds)(length(p_vals))
   
   p_vals |> 
     map(p_effect) |> 
@@ -1465,7 +1492,8 @@ p2dec_rate <- function(
       mutate(d = 100 * (1 - exp(d / dt)))
   }
   
-  cols <- spectral(length(p_vals))
+#  cols <- spectral(length(p_vals))
+  cols <- colorRampPalette(reds)(length(p_vals))
   
   if (is.null(maxt)) maxt <- max(times)
   mint <- min(times)
@@ -1513,7 +1541,9 @@ time2val <- function(
     times = seq2(2025, 2055)) {
 
   if (is.null(target_vals)) target_vals <- seq(.1, .9, .1) * di
-  cols <- rev(spectral(length(target_vals)))
+#  cols <- rev(spectral(length(target_vals)))
+#  cols <- pur2gre(length(target_vals))
+  cols <- rev(colorRampPalette(blues)(length(target_vals)))
   p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
   d_vals <- head(seq2(0, 1), -1)
   
