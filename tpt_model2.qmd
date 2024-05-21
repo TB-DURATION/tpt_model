@@ -115,10 +115,14 @@ polygon2 <- function(x, y, col = 4, alpha = .2, ...) {
 polygon3 <- function(x, y1, y2, col = 4, ...) {
   polygon(c(x, rev(x)), c(y1, rev(y2)), col = col, border = NA, ...)
 }
+```
 
-spectral <- function(n) {
-  colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Spectral")))(n)
-}
+Color palette functions:
+
+```{r}
+spectral <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Spectral")))
+
+pur2gre <- colorRampPalette(c("purple", "green"))
 ```
 
 A function that converts a percentage decrease per year into a rate:
