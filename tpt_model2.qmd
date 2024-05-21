@@ -47,8 +47,7 @@ needed_packages <- c(
   "tibble",
   "purrr",
   "dplyr",
-  "magrittr",
-  "RColorBrewer"
+  "magrittr"
 )
 ```
 
@@ -120,10 +119,6 @@ polygon3 <- function(x, y1, y2, col = 4, ...) {
 Color palette functions:
 
 ```{r}
-spectral <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Spectral")))
-
-pur2gre <- colorRampPalette(c("purple", "green"))
-
 rgb2 <- function(...) rgb(..., maxColorValue = 255)
 
 yellows <- map_chr(list(
@@ -149,6 +144,24 @@ blues <- map_chr(list(
   list(  1, 113, 178),
   list(  5,  78, 145),
   list(  3,  44,  92)), ~ do.call(rgb2, .x))
+
+greens <- map_chr(list(
+  list(217, 232, 197),
+  list(160, 201, 121),
+  list( 98, 179,  70),
+  list( 69, 148,  51),
+  list( 35, 113,  48),
+  list( 21,  59,  28)), ~ do.call(rgb2, .x))
+
+# template:
+#<- map_chr(list(
+#  list(, , ),
+#  list(, , ),
+#  list(, , ),
+#  list(, , ),
+#  list(, , ),
+#  list(, , )), ~ do.call(rgb2, .x))
+
 ```
 
 A function that converts a percentage decrease per year into a rate:
@@ -1426,7 +1439,6 @@ p2dis_inc <- function(
     abline(h = pretty(0:di), col = "grey")
   }
   
-#  cols <- spectral(length(p_vals))
   cols <- colorRampPalette(reds)(length(p_vals))
   
   p_vals |> 
@@ -1492,7 +1504,6 @@ p2dec_rate <- function(
       mutate(d = 100 * (1 - exp(d / dt)))
   }
   
-#  cols <- spectral(length(p_vals))
   cols <- colorRampPalette(reds)(length(p_vals))
   
   if (is.null(maxt)) maxt <- max(times)
@@ -1541,8 +1552,6 @@ time2val <- function(
     times = seq2(2025, 2055)) {
 
   if (is.null(target_vals)) target_vals <- seq(.1, .9, .1) * di
-#  cols <- rev(spectral(length(target_vals)))
-#  cols <- pur2gre(length(target_vals))
   cols <- rev(colorRampPalette(blues)(length(target_vals)))
   p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
   d_vals <- head(seq2(0, 1), -1)
@@ -1624,8 +1633,6 @@ dashboard_epi <- function(
   plot(NA, xlim = c(0, xmax), ylim = c(0, max(ys)),
        xlab = "duration of disease (years)",
        ylab = "density of probability")
-#  abline(v = pretty(0:xmax), col = "grey")
-#  abline(h = pretty(c(0, max(ys))), col = "grey")
   polygon3(xs, ys, rep(0, length(xs)), col = adjustcolor(4, .1))
   lines2(xs, ys, col = 4)
   abline(v = 1 / alpha, lwd = 2)
