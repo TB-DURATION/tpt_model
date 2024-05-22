@@ -89,6 +89,10 @@ lines2 <- function(...) lines(..., lwd = 2)
 
 text2 <- function(...) text(..., adj = 1)
 
+mtext2 <- function(...) mtext(..., side = 2, line = 2.25)
+
+segments2 <- function(...) segments(..., lwd = 2)
+
 abline4 <- function(...) abline(..., lwd = lwd_val)
 
 abline2 <- function(..., col = 2) abline4(..., col = col)
@@ -107,11 +111,14 @@ legend3 <- function(x, y, legend, ...) {
   text(tmp$rect$left + tmp$rect$w, tmp$text$y, legend, pos = 2)
 }
 
-legend4 <- function(x, y, legend, cex, ...) {
-  tmp <- legend(x, y, legend = rep(" ", length(legend)), bty = "n", cex = cex,
-                text.width = max(strwidth(legend)), xjust = 1, yjust = 1, ...)
-  text(tmp$rect$left + tmp$rect$w, tmp$text$y, legend, pos = 2, cex = cex)
+legend4 <- function(x, y, legend, ...) {
+  cex_val <- .8
+  tmp <- legend(x, y, legend = rep(" ", length(legend)), bty = "n", cex = cex_val,
+                text.width = max(strwidth(legend)), xjust = 1, yjust = 1, lwd = 2, ...)
+  text(tmp$rect$left + tmp$rect$w, tmp$text$y, legend, pos = 2, cex = cex_val)
 }
+
+legend5 <- function(...) legend4(..., lty = 1)
 
 mclapply2 <- function(...) {
   parallel::mclapply(..., mc.cores = parallel::detectCores() - 1)
@@ -1255,7 +1262,7 @@ pi2dis_inc <- function(
     map(pi_effect) |> 
     walk2(cols, ~ with(.x, lines2(time, d, col = .y)))
   
-  segments(minx, di, mint, di, col = cols[1], lwd = 2)
+  segments2(minx, di, mint, di, col = cols[1])
   
   if (show_rates) {
     xs <- seq(mint, maxt, by)
@@ -1409,254 +1416,9 @@ siid2_param_val <- function(I, D, d1, d2, delta1, gamma1, gamma2, N) {
 }
 ```
 
-
-
-#### Prophylaxis
-
-
-```{r}
-make_p_effect <- function(
-    I0 = 2e4,
-    D0 = 322,
-    di = 176,
-    x = .9,
-    delta1 = 1 / 2,
-    gamma1 = 1 / 60,
-    gamma2 = 1 / 60,
-    N = 1e5,
-    times = seq2(2025, 2030)) {
-  
-  d1 <- x * di
-  p_val <- siid2_param_val(I0, D0, d1, di - d1, delta1, gamma1, gamma2, N)
-  
-  alpha  <- p_val[["alpha"]]
-  beta   <- p_val[["beta"]]
-  sigma  <- p_val[["sigma"]]
-  delta2 <- p_val[["delta2"]]
-  
-  start_val <- siid2_equ(N, 1, beta, sigma, alpha, gamma1, gamma2, delta1, delta2)
-  
-  function(p) {
-    siid2_dyn(N, start_val[["I1"]], start_val[["I2"]], start_val[["D"]],
-              p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) |> 
-      mutate(d = delta1 * I1 + delta2 * I2)
-  }
-}
-```
-
-
-```{r}
-p2dis_inc <- function(
-    I0 = 2e4,
-    D0 = 322,
-    di = 176,
-    x = .9,
-    delta1 = 1 / 2,
-    gamma1 = 1 / 60,
-    gamma2 = 1 / 60,
-    N = 1e5,
-    p_vals = seq(0, 1, .1),
-    rates = c(.02, .1, .2),
-    by = .1,
-    times = 2025 + seq2(0, 30),
-    eps = 5, xl = 2048, yl = 175,
-    lgnd = TRUE,
-    show_rates = TRUE,
-    grid = FALSE) {
-  
-  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
-  
-  maxt <- max(times)
-  mint <- min(times)
-  minx <- mint - eps
-  
-  plot(NA, xlim = c(minx, maxt), ylim = c(0, di),
-       xlab = "year", ylab = "(/year/100,000)")
-  mtext("disease incidence", 2, 2.25)
-  
-  if (grid) {
-    abline(v = pretty(minx:maxt), col = "grey")
-    abline(h = pretty(0:di), col = "grey")
-  }
-  
-  cols <- colorRampPalette(reds)(length(p_vals))
-  
-  p_vals |> 
-    map(p_effect) |> 
-    walk2(rev(cols), ~ with(.x, lines2(time, d, col = .y)))
-  
-  segments(minx, di, mint, di, col = cols[1], lwd = 2)
-  
-  if (show_rates) {
-    xs <- seq(mint, maxt, by)
-    walk2(rates, 2:4,
-          ~ lines2(xs, di * exp(- find_rate(.x) * (xs - mint)), lty = .y))
-  }
-  
-  if (lgnd) {
-    legend("bottomleft", col = cols, title = "1 - p", lwd = 2,
-           bty = ifelse(grid, "o", "n"),
-           legend = formatC(round(p_vals, 2), digits = 2, format = "f"))
-    legend(xl, yl, lty = 2:4, title = "annual decrease", lwd = 2,
-           bty = ifelse(grid, "o", "n"),
-           legend = paste0(formatC(round(rates, 2), digits = 2, format = "f"), "%"))
-  }
-}
-```
-
-
-Let's try it:
-
-```{r}
-p2dis_inc()
-```
-
-
-
-```{r}
-p2dec_rate <- function(
-    I0 = 2e4,
-    D0 = 322,
-    di = 176,
-    x = .9,
-    delta1 = 1 / 2,
-    gamma1 = 1 / 60,
-    gamma2 = 1 / 60,
-    N = 1e5,
-    p_vals = seq(0, 1, .1),
-    rates = c(.02, .1, .2),
-    by = .1,
-    times = seq2(2025, 2030),
-    maxt = NULL,
-    xl = 2048, yl = 175,
-    lgnd = TRUE,
-    show_rates = TRUE,
-    grid = TRUE) {
-
-  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
-  
-  decrease_rate <- function(x) {
-    dt <- diff(x$time)[1]
-    x |> 
-      mutate(time = time + dt,
-             d    = c(diff(d) / head(d, -1), NA)) |> 
-      filter(row_number() <= n() - 1) |> 
-      mutate(d = 100 * (1 - exp(d / dt)))
-  }
-  
-  cols <- colorRampPalette(reds)(length(p_vals))
-  
-  if (is.null(maxt)) maxt <- max(times)
-  mint <- min(times)
-  
-  tmp <- p_vals |> 
-    map(p_effect) |> 
-    map(decrease_rate)
-  
-  ymax <- max(map_dbl(tmp, ~ max(.x$d)))
-  
-  plot(NA, xlim = c(mint, maxt), ylim = c(0, ymax),
-       xlab = "year", ylab = "% decrease / year")
-  
-  if (grid) {
-    abline(v = pretty(mint:maxt), col = "grey")
-    abline(h = pretty(c(0, ymax)), col = "grey")
-  }
-  
-  walk2(tmp, rev(cols), ~ with(.x, lines2(time, d, col = .y)))
-  
-  if (show_rates) abline(h = 100 * rates, lty = 2:4, lwd = 2)
-  
-  if (lgnd) {
-    legend("topright", col = cols, title = "1 - p", lwd = 2,
-           bty = ifelse(grid, "o", "n"),
-           legend = formatC(round(p_vals, 2), digits = 2, format = "f"))
-  }
-}
-
-p2dec_rate()
-```
-
-
-```{r}
-time2val <- function(
-    I0 = 2e4,
-    D0 = 322,
-    di = 176,
-    x = .9,
-    delta1 = 1 / 2,
-    gamma1 = 1 / 60,
-    gamma2 = 1 / 60,
-    N = 1e5,
-    target_vals = NULL,
-    times = seq2(2025, 2055)) {
-
-  if (is.null(target_vals)) target_vals <- seq(.1, .9, .1) * di
-  cols <- rev(colorRampPalette(blues)(length(target_vals)))
-  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
-  d_vals <- head(seq2(0, 1), -1)
-  
-  compute_data <- function(target) {
-    time_vals <- unlist(
-      mclapply2(d_vals, function(x) with(p_effect(x), approx(d, time, target)$y)))
-    sel <- ! is.na(time_vals)
-    tibble(d = 1 - d_vals[sel], t = time_vals[sel])
-  }
-  
-  plot(NA, xlim = 0:1, ylim = range(times),
-       xlab = "efficacy of prophylaxis",
-       ylab = "year reaching target")
-  
-  abline(v = pretty(0:1), col = "grey")
-  abline(h = pretty(times), col = "grey")
-  
-  target_vals |>
-    map(compute_data) |> 
-    walk2(cols, ~ with(.x, lines2(d, t, col = .y)))
-}
-```
-
-
-```{r}
-inc_at_time <- function(
-    I0 = 2e4,
-    D0 = 322,
-    di = 176,
-    x = .9,
-    delta1 = 1 / 2,
-    gamma1 = 1 / 60,
-    gamma2 = 1 / 60,
-    N = 1e5,
-    horizons = NULL,
-    times = seq2(2025, 2055)) {
-
-  if (is.null(horizons)) horizons <- pretty(times)
-  cols <- colorRampPalette(greens)(length(horizons))
-  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
-  d_vals <- head(seq2(0, 1), -1)
-  
-  compute_data <- function(hor) {
-    inc_vals <- unlist(
-      mclapply2(d_vals, function(x) with(p_effect(x), approx(time, d, hor)$y)))
-    sel <- ! is.na(inc_vals)
-    tibble(d = 1 - d_vals[sel], i = inc_vals[sel])
-  }
-  
-  plot(NA, xlim = 0:1, ylim = c(0, di),
-       xlab = "efficacy of prophylaxis",
-       ylab = "(/year/100,000)")
-  mtext("disease incidence", 2, 2.25)
-  
-  abline(v = pretty(0:1), col = "grey")
-  abline(h = pretty(0:di), col = "grey")
-  
-  horizons |>
-    map(compute_data) |> 
-    walk2(cols, ~ with(.x, lines2(d, i, col = .y)))
-}
-
-inc_at_time()
-```
+The next 2 functions are functions that generate diagnostic plots following
+calibration. The first one shows the dynamics of leaving the compartment of recent
+infections:
 
 ```{r}
 leaving_recent_infections <- function(
@@ -1698,9 +1460,10 @@ leaving_recent_infections <- function(
   text2(xtext * xmax, .5, "long-lasting infections", col = greys[3], font = 2)
   text2(xtext * xmax, .15, "disease", col = skin_tones[3], font = 2)
 }
-
-leaving_recent_infections()
 ```
+
+The second one shows the distribution of the duration of disease together with R$_0$
+and the probability of long-lasting infections to develop disease.
 
 ```{r}
 disease_duration_distribution <- function(
@@ -1718,6 +1481,7 @@ disease_duration_distribution <- function(
   x2 <- .95
   y <- seq(.93, .48, -.15)
   eps <- .025
+  ps <- seq(0, .9, .1)
   
   d1 <- x * di
   p_val <- siid2_param_val(I0, D0, d1, di - d1, delta1, gamma1, gamma2, N)
@@ -1727,18 +1491,18 @@ disease_duration_distribution <- function(
   xs <- seq2(0, xmax)
   ys <- dexp(xs, alpha)
   ymax <- max(ys)
-  qtls <- qexp(seq(.1, .9, .1), alpha)
+  qtls <- qexp(ps, alpha)
   cols <- colorRampPalette(yellows)(length(qtls))
   
   plot(NA, xlim = c(0, xmax), ylim = c(0, ymax),
        xlab = "duration of disease (years)",
        ylab = "density of probability")
   
-  polygon3(xs, ys, rep(0, length(xs)), col = cols[1])
-  for (i in 1:length(qtls)) {
-    sel <- qtls[i] <= xs
-    polygon3(xs[sel], ys[sel], rep(0, length(xs[sel])), col = cols[i + 1])
-  }
+  walk2(qtls, cols,
+        function(q, col) {
+          sel <- q <= xs
+          polygon3(xs[sel], ys[sel], rep(0, length(xs[sel])), col = col)
+        })
   
   abline4(v = 1 / alpha)
   abline4(v = log(2) / alpha, lty = 2)
@@ -1754,7 +1518,231 @@ disease_duration_distribution <- function(
 }
 ```
 
-Dashboard:
+
+#### Prophylaxis
+
+Here we use the epidemiological model to investigate the epidemiological consequences
+of prophylaxis. The first function generates the function used to explore the effect of
+prophylaxis:
+
+```{r}
+make_p_effect <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5,
+    times = seq2(2025, 2030)) {
+  
+  d1 <- x * di
+  p_val <- siid2_param_val(I0, D0, d1, di - d1, delta1, gamma1, gamma2, N)
+  
+  alpha  <- p_val[["alpha"]]
+  beta   <- p_val[["beta"]]
+  sigma  <- p_val[["sigma"]]
+  delta2 <- p_val[["delta2"]]
+  
+  start_val <- siid2_equ(N, 1, beta, sigma, alpha, gamma1, gamma2, delta1, delta2)
+  
+  function(p) {
+    siid2_dyn(N, start_val[["I1"]], start_val[["I2"]], start_val[["D"]],
+              p, beta, sigma, alpha, gamma1, gamma2, delta1, delta2, times) |> 
+      mutate(d = delta1 * I1 + delta2 * I2)
+  }
+}
+```
+
+The above function is used by the next 4 functions used to vizualize the effect of
+prophylaxis under various angles. The first one looks at the effect of prophylaxis as
+a function of time for various levels of prophylaxis.
+
+```{r}
+p2dis_inc <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5,
+    p_vals = seq(0, 1, .1),
+    rates = c(.02, .1, .2),
+    by = .05,
+    times = 2025 + seq2(0, 30),
+    eps = 5, xl = 2048, yl = 175) {
+  
+  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
+  
+  maxt <- max(times)
+  mint <- min(times)
+  minx <- mint - eps
+  
+  plot(NA, xlim = c(minx, maxt), ylim = c(0, di),
+       xlab = "year", ylab = "(/year/100,000)")
+  mtext2("disease incidence")
+  
+  abline3(v = pretty(minx:maxt))
+  abline3(h = pretty(0:di))
+  
+  cols <- colorRampPalette(reds)(length(p_vals))
+  
+  p_vals |> 
+    map(p_effect) |> 
+    walk2(rev(cols), ~ with(.x, lines2(time, d, col = .y)))
+  
+  segments2(minx, di, mint, di, col = cols[1])
+  
+  xs <- seq(mint, maxt, by)
+  walk2(rates, 2:4,
+        ~ lines2(xs, di * exp(- find_rate(.x) * (xs - mint)), lty = .y))
+}
+```
+
+The second one looks at the yearly rate of disease incidence decrease (in percentage)
+as a function of time for various levels of prophylaxis:
+
+```{r}
+p2dec_rate <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5,
+    p_vals = seq(0, 1, .1),
+    rates = c(.02, .1, .2),
+    times = seq2(2025, 2030),
+    maxt = NULL,
+    xl = 2048, yl = 175) {
+
+  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
+  
+  decrease_rate <- function(x) {
+    dt <- diff(x$time)[1]
+    x |> 
+      mutate(time = time + dt,
+             d    = c(diff(d) / head(d, -1), NA)) |> 
+      filter(row_number() <= n() - 1) |> 
+      mutate(d = 100 * (1 - exp(d / dt)))
+  }
+  
+  cols <- colorRampPalette(reds)(length(p_vals))
+  
+  if (is.null(maxt)) maxt <- max(times)
+  mint <- min(times)
+  
+  tmp <- p_vals |> 
+    map(p_effect) |> 
+    map(decrease_rate)
+  
+  ymax <- max(map_dbl(tmp, ~ max(.x$d)))
+  
+  plot(NA, xlim = c(mint, maxt), ylim = c(0, ymax),
+       xlab = "year", ylab = "% decrease / year")
+  
+  abline3(v = pretty(mint:maxt))
+  abline3(h = pretty(c(0, ymax)))
+  
+  walk2(tmp, rev(cols), ~ with(.x, lines2(time, d, col = .y)))
+  
+  abline4(h = 100 * rates, lty = 2:4)
+}
+```
+
+The third one looks at the year a targeted level of disease incidence is reached as a
+function of the efficacy of prophylaxis and this for various levels of targeted
+disease incidence:
+
+```{r}
+time2val <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5,
+    target_vals = NULL,
+    times = seq2(2025, 2055),
+    d_vals = head(seq2(0, 1), -1)) {
+
+  if (is.null(target_vals)) target_vals <- seq(.1, .9, .1) * di
+  cols <- rev(colorRampPalette(blues)(length(target_vals)))
+  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
+  
+  compute_data <- function(target) {
+    time_vals <- unlist(
+      mclapply2(d_vals, function(x) with(p_effect(x), approx(d, time, target)$y)))
+    sel <- ! is.na(time_vals)
+    tibble(d = 1 - d_vals[sel], t = time_vals[sel])
+  }
+  
+  plot(NA, xlim = 0:1, ylim = range(times),
+       xlab = "efficacy of prophylaxis",
+       ylab = "year reaching target")
+  
+  abline3(v = pretty(0:1))
+  abline3(h = pretty(times))
+  
+  target_vals |>
+    map(compute_data) |> 
+    walk2(cols, ~ with(.x, lines2(d, t, col = .y)))
+}
+```
+
+The last one looks at the level of disease incidence that is reached as a function of
+the efficacy of prophylaxis, and this for various time horizons:
+
+```{r}
+inc_at_time <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5,
+    horizons = NULL,
+    times = seq2(2025, 2055),
+    d_vals = head(seq2(0, 1), -1)) {
+
+  if (is.null(horizons)) horizons <- pretty(times)
+  cols <- colorRampPalette(greens)(length(horizons))
+  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
+  
+  compute_data <- function(hor) {
+    inc_vals <- unlist(
+      mclapply2(d_vals, function(x) with(p_effect(x), approx(time, d, hor)$y)))
+    sel <- ! is.na(inc_vals)
+    tibble(d = 1 - d_vals[sel], i = inc_vals[sel])
+  }
+  
+  plot(NA, xlim = 0:1, ylim = c(0, di),
+       xlab = "efficacy of prophylaxis",
+       ylab = "(/year/100,000)")
+  mtext("disease incidence", 2, 2.25)
+  
+  abline3(v = pretty(0:1))
+  abline3(h = pretty(0:di))
+  
+  horizons |>
+    map(compute_data) |> 
+    walk2(cols, ~ with(.x, lines2(d, i, col = .y)))
+}
+```
+
+#### Dashboard
+
+The following function puts together the diagnostic plots of the calibration and the
+plots of the exploration of the prophylaxis:
 
 ```{r}
 dashboard_epi <- function(
@@ -1773,6 +1761,7 @@ dashboard_epi <- function(
     by = .1,
     times1 = seq2(2025, 2055),
     times2 = seq2(2025, 2030),
+    d_vals = head(seq2(0, 1), -1),
     eps = 2) {
   
 # 1. duration of "recent infections"
@@ -1782,44 +1771,56 @@ dashboard_epi <- function(
   disease_duration_distribution(I0, D0, di, x, delta1, gamma1, gamma2, N)
   
 # 3. decrease in disease incidence    
-  p2dis_inc(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times1, eps,
-            lgnd = FALSE, grid = TRUE)
-  legend4("topright", lty = 2:4, lwd = 2, cex = .8,
-         legend = paste0(formatC(round(100 * c(.02, .1, .2)),
-                                 digits = 0, width = 2, format = "f"), "%/yr"))
+  p2dis_inc(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times1, eps)
+  legend4("topright", lty = 2:4,
+          legend = paste0(formatC(round(100 * c(.02, .1, .2)),
+                                  digits = 0, width = 2, format = "f"), "%/yr"))
 
 # 4. disease incidence as function of prophylaxis efficacy and year
-  inc_at_time(I0, D0, di, x, delta1, gamma1, gamma2, N, horizons, times1)
+  inc_at_time(I0, D0, di, x, delta1, gamma1, gamma2, N, horizons, times1, d_vals)
   cols <- colorRampPalette(greens)(7)
   cols <- c(cols[1:2], "white", cols[7])
-  legend4("topright", legend = c("2025", "2030", "...", "2055"),
-          lty = 1, lwd = 2, cex = .8, col = cols)
+  legend5("topright", legend = c("2025", "2030", "...", "2055"), col = cols)
     
 # 5. rate of decrease of disease incidence
-  p2dec_rate(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times2,
-             lgnd = FALSE)
+  p2dec_rate(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, times2)
   cols <- colorRampPalette(reds)(10)
   cols <- c(cols[1:2], "white", cols[10])
-  legend4("topright", title = "1 - p", legend = c("0.00", "0.10", "...", "1.00"),
-          lty = 1, lwd = 2, cex = .8, col = cols)
+  legend5("topright", title = "1 - p", legend = c("0.00", "0.10", "...", "1.00"),
+          col = cols)
   
 # 6. time to target
   if (is.null(target_vals)) target_vals <- seq(25, di, 25)
-  time2val(I0, D0, di, x, delta1, gamma1, gamma2, N, target_vals, times1)
+  time2val(I0, D0, di, x, delta1, gamma1, gamma2, N, target_vals, times1, d_vals)
   ll <- length(target_vals)
   cols <- colorRampPalette(blues)(ll)
   cols <- c(cols[1:2], "white", cols[ll])
-  legend4("topright", title = "incidence", legend = c("0.00", "0.10", "...", "1.00"),
-          lty = 1, lwd = 2, cex = .8, col = cols)
+  legend5("topright", title = "incidence", col = cols,
+          legend = c(target_vals[1:2], "...", target_vals[length(target_vals)]))
 }
+```
+
+Let's play with it:
+
+```{r fig.height = 3 * 5 / 2, eval = FALSE}
+opar <- par(mfrow = c(3, 2), cex = 1, plt = c(.25, .95, .25, .9))
+system.time(
+dashboard_epi(times1 = seq(2025, 2055, le = 512),
+              times2 = seq(2025, 2030, le = 512),
+              d_vals = head(seq(0, 1, le = 512), -1))
+)
+par(opar)
 ```
 
 ```{r fig.height = 3 * 5 / 2}
 opar <- par(mfrow = c(3, 2), cex = 1, plt = c(.25, .95, .25, .9))
-dashboard_epi()
+system.time(
+dashboard_epi(times1 = seq(2025, 2055, le = 100),
+              times2 = seq(2025, 2030, le = 100),
+              d_vals = head(seq(0, 1, le = 100), -1))
+)
 par(opar)
 ```
-
 
 
 ## Full model
