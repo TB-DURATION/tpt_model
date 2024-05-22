@@ -87,9 +87,13 @@ plotl <- function(...) plot(..., type = "l", lwd = 2)
 
 lines2 <- function(...) lines(..., lwd = 2)
 
-legend2 <- function(...) legend(..., bty = "n")
+text2 <- function(...) text(..., adj = 1)
 
-abline2 <- function(..., col = 2) abline(..., lwd = lwd_val, col = col)
+abline4 <- function(...) abline(..., lwd = lwd_val)
+
+abline2 <- function(..., col = 2) abline4(..., col = col)
+
+abline3 <- function(...) abline(..., col = "grey")
 
 plot2 <- function(..., col = 4) plot(..., type = "l", lwd = lwd_val, col = col)
 
@@ -104,8 +108,8 @@ legend3 <- function(x, y, legend, ...) {
 }
 
 legend4 <- function(x, y, legend, cex, ...) {
-  tmp <- legend(x, y, legend = rep(" ", length(legend)), bty = "n",
-                text.width = max(strwidth(legend)), xjust = 1, yjust = 1, cex = cex, ...)
+  tmp <- legend(x, y, legend = rep(" ", length(legend)), bty = "n", cex = cex,
+                text.width = max(strwidth(legend)), xjust = 1, yjust = 1, ...)
   text(tmp$rect$left + tmp$rect$w, tmp$text$y, legend, pos = 2, cex = cex)
 }
 
@@ -1654,7 +1658,101 @@ inc_at_time <- function(
 inc_at_time()
 ```
 
+```{r}
+leaving_recent_infections <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5) {
+  
+  pexp <- .99
+  xtext <- .98
+  
+  d1 <- x * di
+  p_val <- siid2_param_val(I0, D0, d1, di - d1, delta1, gamma1, gamma2, N)
+  lambda <- delta1 + p_val[["sigma"]] + gamma1
+  xmax <- ceiling(qexp(pexp, lambda))
+  xs <- seq2(0, xmax)
+  ys <- pexp(xs, lambda)
+  
+  plot(NA, xlim = c(0, xmax), ylim = 0:1,
+       xlab = "leaving recent infections (years)",
+       ylab = "cumulative probability")
+  
+  polygon3(xs, ys * gamma1 / lambda, rep(0, length(xs)), col = tones[1])
+  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys * gamma1 / lambda,
+           col = skin_tones[1])
+  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys, col = greys[1])
+  
+  abline3(v = pretty(0:xmax))
+  abline3(h = seq(0, 1, .1))
+  
+  lines2(xs, ys * gamma1 / lambda, col = tones[3])
+  lines2(xs, ys * (gamma1 + delta1) / lambda, col = skin_tones[3])
+  lines2(xs, ys, col = greys[3])
+  
+  text2(xtext * xmax, .5, "long-lasting infections", col = greys[3], font = 2)
+  text2(xtext * xmax, .15, "disease", col = skin_tones[3], font = 2)
+}
 
+leaving_recent_infections()
+```
+
+```{r}
+disease_duration_distribution <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5) {
+  
+  pexp <- .99
+  x1 <- .9
+  x2 <- .95
+  y <- seq(.93, .48, -.15)
+  eps <- .025
+  
+  d1 <- x * di
+  p_val <- siid2_param_val(I0, D0, d1, di - d1, delta1, gamma1, gamma2, N)
+  alpha <- p_val[["alpha"]]
+  delta2 <- p_val[["delta2"]]
+  xmax <- ceiling(qexp(pexp, alpha))
+  xs <- seq2(0, xmax)
+  ys <- dexp(xs, alpha)
+  ymax <- max(ys)
+  qtls <- qexp(seq(.1, .9, .1), alpha)
+  cols <- colorRampPalette(yellows)(length(qtls))
+  
+  plot(NA, xlim = c(0, xmax), ylim = c(0, ymax),
+       xlab = "duration of disease (years)",
+       ylab = "density of probability")
+  
+  polygon3(xs, ys, rep(0, length(xs)), col = cols[1])
+  for (i in 1:length(qtls)) {
+    sel <- qtls[i] <= xs
+    polygon3(xs[sel], ys[sel], rep(0, length(xs[sel])), col = cols[i + 1])
+  }
+  
+  abline4(v = 1 / alpha)
+  abline4(v = log(2) / alpha, lty = 2)
+  
+  text2(x1 * xmax, y[1] * ymax,
+       bquote(paste("R"[0], " = ", .(round(N * p_val[["beta"]] / alpha, 2)))))
+  text2(x1 * xmax, y[2] * ymax,
+       paste("Pr[d|oi] =", round(delta2 / (delta2 + gamma2), 2)))
+  text2(x1 * xmax, y[3] * ymax, paste("median =", round(log(2) / alpha, 2)))
+  text2(x1 * xmax, y[4] * ymax, paste("mean =", round(1 / alpha, 2)))
+  text(x2 * xmax, (y[3] - eps) * ymax, "yr")
+  text(x2 * xmax, (y[4] - eps) * ymax, "yr")
+}
+```
 
 Dashboard:
 
@@ -1678,59 +1776,10 @@ dashboard_epi <- function(
     eps = 2) {
   
 # 1. duration of "recent infections"
-  d1 <- x * di
-  p_val <- siid2_param_val(I0, D0, d1, di - d1, delta1, gamma1, gamma2, N)
-  
-  lambda <- delta1 + p_val[["sigma"]] + gamma1
-  xmax <- ceiling(qexp(.99, lambda))
-  xs <- seq2(0, xmax)
-  plot(NA, xlim = c(0, xmax), ylim = 0:1,
-       xlab = "leaving recent infections (years)",
-       ylab = "cumulative probability")
-  ys <- pexp(xs, lambda)
-  polygon3(xs, ys * gamma1 / lambda, rep(0, length(xs)), col = tones[1])
-  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys * gamma1 / lambda,
-           col = skin_tones[1])
-  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys, col = greys[1])
-  abline(v = pretty(0:xmax), col = "grey")
-  abline(h = seq(0, 1, .1), col = "grey")
-  lines2(xs, ys * gamma1 / lambda, col = tones[3])
-  lines2(xs, ys * (gamma1 + delta1) / lambda, col = skin_tones[3])
-  lines2(xs, ys, col = greys[3])
-  text(2.95, .5, "long-lasting infections", col = greys[3], 1, font = 2)
-  text(2.95, .15, "disease", col = skin_tones[3], 1, font = 2)
+  leaving_recent_infections(I0, D0, di, x, delta1, gamma1, gamma2, N)
 
 # 2. duration of disease
-  alpha <- p_val[["alpha"]]
-  delta2 <- p_val[["delta2"]]
-  xmax <- ceiling(qexp(.99, alpha))
-  xs <- seq2(0, xmax)
-  ys <- dexp(xs, alpha)
-  ymax <- max(ys)
-  plot(NA, xlim = c(0, xmax), ylim = c(0, ymax),
-       xlab = "duration of disease (years)",
-       ylab = "density of probability")
-  
-  cols <- colorRampPalette(yellows)(10)
-  polygon3(xs, ys, rep(0, length(xs)), col = cols[1])
-  
-  qtls <- qexp(seq(.1, .9, .1), alpha)
-  for (i in 1:length(qtls)) {
-    sel <- qtls[i] <= xs
-    polygon3(xs[sel], ys[sel], rep(0, length(xs[sel])), col = cols[i + 1])
-  }
-  
-  abline(v = 1 / alpha, lwd = 2)
-  abline(v = log(2) / alpha, lwd = 2, lty = 2)
-  
-  text(.9 * xmax, .93 * ymax,
-       bquote(paste("R"[0], " = ", .(round(N * p_val[["beta"]] / alpha, 2)))), 1)
-  text(.9 * xmax, .78 * ymax,
-       paste("Pr[d|oi] =", round(delta2 / (delta2 + gamma2), 2)), 1)
-  text(.9 * xmax, .63 * ymax, paste("median =", round(log(2) / alpha, 2)), 1)
-  text(.95 * xmax, .605 * ymax, "yr")
-  text(.9 * xmax, .48 * ymax, paste("mean =", round(1 / alpha, 2)), 1)
-  text(.95 * xmax, .455 * ymax, "yr")
+  disease_duration_distribution(I0, D0, di, x, delta1, gamma1, gamma2, N)
   
 # 3. decrease in disease incidence    
   p2dis_inc(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times1, eps,
@@ -1739,14 +1788,14 @@ dashboard_epi <- function(
          legend = paste0(formatC(round(100 * c(.02, .1, .2)),
                                  digits = 0, width = 2, format = "f"), "%/yr"))
 
-# 4.
+# 4. disease incidence as function of prophylaxis efficacy and year
   inc_at_time(I0, D0, di, x, delta1, gamma1, gamma2, N, horizons, times1)
   cols <- colorRampPalette(greens)(7)
   cols <- c(cols[1:2], "white", cols[7])
   legend4("topright", legend = c("2025", "2030", "...", "2055"),
           lty = 1, lwd = 2, cex = .8, col = cols)
     
-# 5. decrease rate
+# 5. rate of decrease of disease incidence
   p2dec_rate(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times2,
              lgnd = FALSE)
   cols <- colorRampPalette(reds)(10)
@@ -1762,7 +1811,6 @@ dashboard_epi <- function(
   cols <- c(cols[1:2], "white", cols[ll])
   legend4("topright", title = "incidence", legend = c("0.00", "0.10", "...", "1.00"),
           lty = 1, lwd = 2, cex = .8, col = cols)
-
 }
 ```
 
