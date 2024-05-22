@@ -1793,7 +1793,7 @@ dashboard_epi <- function(
   if (is.null(target_vals)) target_vals <- seq(25, di, 25)
   time2val(I0, D0, di, x, delta1, gamma1, gamma2, N, target_vals, times1, d_vals)
   ll <- length(target_vals)
-  cols <- colorRampPalette(blues)(ll)
+  cols <- rev(colorRampPalette(blues)(ll))
   cols <- c(cols[1:2], "white", cols[ll])
   legend5("topright", title = "incidence", col = cols,
           legend = c(target_vals[1:2], "...", target_vals[length(target_vals)]))
