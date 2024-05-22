@@ -47,7 +47,8 @@ needed_packages <- c(
   "tibble",
   "purrr",
   "dplyr",
-  "magrittr"
+  "magrittr",
+  "RColorBrewer"
 )
 ```
 
@@ -102,6 +103,12 @@ legend3 <- function(x, y, legend, ...) {
   text(tmp$rect$left + tmp$rect$w, tmp$text$y, legend, pos = 2)
 }
 
+legend4 <- function(x, y, legend, cex, ...) {
+  tmp <- legend(x, y, legend = rep(" ", length(legend)), bty = "n",
+                text.width = max(strwidth(legend)), xjust = 1, yjust = 1, cex = cex, ...)
+  text(tmp$rect$left + tmp$rect$w, tmp$text$y, legend, pos = 2, cex = cex)
+}
+
 mclapply2 <- function(...) {
   parallel::mclapply(..., mc.cores = parallel::detectCores() - 1)
 }
@@ -120,6 +127,10 @@ Color palette functions:
 
 ```{r}
 rgb2 <- function(...) rgb(..., maxColorValue = 255)
+
+spectral <- function(n) {
+  colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Spectral")))(n)
+}
 
 yellows <- map_chr(list(
   list(255, 241, 195),
@@ -152,6 +163,31 @@ greens <- map_chr(list(
   list( 69, 148,  51),
   list( 35, 113,  48),
   list( 21,  59,  28)), ~ do.call(rgb2, .x))
+
+tones <- map_chr(list(
+  list(247, 245, 239),
+  list(228, 224, 204),
+  list(198, 194, 166),
+  list(168, 163, 134),
+  list(136, 131, 101),
+  list( 98,  94,  74)), ~ do.call(rgb2, .x))
+
+greys <- map_chr(list(
+  list(230, 230, 230),
+  list(200, 206, 218),
+  list(153, 163, 181),
+  list(111, 123, 144),
+  list( 73,  86, 109),
+  list( 35,  50,  72)), ~ do.call(rgb2, .x))
+
+skin_tones <- map_chr(list(
+  list(248, 230, 215),
+  list(221, 189, 163),
+  list(191, 153, 125),
+  list(147, 105,  87),
+  list(117,  79,  64),
+  list( 68,  45,  31)), ~ do.call(rgb2, .x))
+
 
 # template:
 #<- map_chr(list(
@@ -1577,6 +1613,48 @@ time2val <- function(
 ```
 
 
+```{r}
+inc_at_time <- function(
+    I0 = 2e4,
+    D0 = 322,
+    di = 176,
+    x = .9,
+    delta1 = 1 / 2,
+    gamma1 = 1 / 60,
+    gamma2 = 1 / 60,
+    N = 1e5,
+    horizons = NULL,
+    times = seq2(2025, 2055)) {
+
+  if (is.null(horizons)) horizons <- pretty(times)
+  cols <- colorRampPalette(greens)(length(horizons))
+  p_effect <- make_p_effect(I0, D0, di, x, delta1, gamma1, gamma2, N, times)
+  d_vals <- head(seq2(0, 1), -1)
+  
+  compute_data <- function(hor) {
+    inc_vals <- unlist(
+      mclapply2(d_vals, function(x) with(p_effect(x), approx(time, d, hor)$y)))
+    sel <- ! is.na(inc_vals)
+    tibble(d = 1 - d_vals[sel], i = inc_vals[sel])
+  }
+  
+  plot(NA, xlim = 0:1, ylim = c(0, di),
+       xlab = "efficacy of prophylaxis",
+       ylab = "(/year/100,000)")
+  mtext("disease incidence", 2, 2.25)
+  
+  abline(v = pretty(0:1), col = "grey")
+  abline(h = pretty(0:di), col = "grey")
+  
+  horizons |>
+    map(compute_data) |> 
+    walk2(cols, ~ with(.x, lines2(d, i, col = .y)))
+}
+
+inc_at_time()
+```
+
+
 
 Dashboard:
 
@@ -1593,6 +1671,7 @@ dashboard_epi <- function(
     p_vals = seq(0, 1, .1),
     target_vals = NULL,
     rates = c(.02, .1, .2),
+    horizons = seq(2025, 2055, 5),
     by = .1,
     times1 = seq2(2025, 2055),
     times2 = seq2(2025, 2030),
@@ -1608,47 +1687,82 @@ dashboard_epi <- function(
   plot(NA, xlim = c(0, xmax), ylim = 0:1,
        xlab = "leaving recent infections (years)",
        ylab = "cumulative probability")
+  ys <- pexp(xs, lambda)
+  polygon3(xs, ys * gamma1 / lambda, rep(0, length(xs)), col = tones[1])
+  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys * gamma1 / lambda,
+           col = skin_tones[1])
+  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys, col = greys[1])
   abline(v = pretty(0:xmax), col = "grey")
   abline(h = seq(0, 1, .1), col = "grey")
-  ys <- pexp(xs, lambda)
-  polygon3(xs, ys * gamma1 / lambda, rep(0, length(xs)), col = adjustcolor(3, .1))
-  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys, col = adjustcolor(4, .1))
-  polygon3(xs, ys * (gamma1 + delta1) / lambda, ys * gamma1 / lambda,
-           col = adjustcolor(2, .1))
-  lines2(xs, ys, col = 4)
-  lines2(xs, ys * (gamma1 + delta1) / lambda, col = 2)
-  lines2(xs, ys * gamma1 / lambda, col = 3)
+  lines2(xs, ys * gamma1 / lambda, col = tones[3])
+  lines2(xs, ys * (gamma1 + delta1) / lambda, col = skin_tones[3])
+  lines2(xs, ys, col = greys[3])
+  text(2.95, .5, "long-lasting infections", col = greys[3], 1, font = 2)
+  text(2.95, .15, "disease", col = skin_tones[3], 1, font = 2)
 
-# 2. R0 and proba to develop TB in the long run
+# 2. duration of disease
   alpha <- p_val[["alpha"]]
-#  plot(NA, xlim = 0:1, ylim = 0:1, ann = FALSE, axes = FALSE)
-#  text(.8, .53, paste("R0 =", round(N * p_val[["beta"]] / alpha, 2)), 1)
-#  delta2 <- p_val[["delta2"]]
-#  text(.8, .38, paste("Pr[dis old inf] =", round(delta2 / (delta2 + gamma2), 2)), 1)
-  
-# 3. duration of disease
+  delta2 <- p_val[["delta2"]]
   xmax <- ceiling(qexp(.99, alpha))
   xs <- seq2(0, xmax)
   ys <- dexp(xs, alpha)
-  plot(NA, xlim = c(0, xmax), ylim = c(0, max(ys)),
+  ymax <- max(ys)
+  plot(NA, xlim = c(0, xmax), ylim = c(0, ymax),
        xlab = "duration of disease (years)",
        ylab = "density of probability")
-  polygon3(xs, ys, rep(0, length(xs)), col = adjustcolor(4, .1))
-  lines2(xs, ys, col = 4)
+  
+  cols <- colorRampPalette(yellows)(10)
+  polygon3(xs, ys, rep(0, length(xs)), col = cols[1])
+  
+  qtls <- qexp(seq(.1, .9, .1), alpha)
+  for (i in 1:length(qtls)) {
+    sel <- qtls[i] <= xs
+    polygon3(xs[sel], ys[sel], rep(0, length(xs[sel])), col = cols[i + 1])
+  }
+  
   abline(v = 1 / alpha, lwd = 2)
   abline(v = log(2) / alpha, lwd = 2, lty = 2)
   
-# 4. decrease in disease incidence    
+  text(.9 * xmax, .93 * ymax,
+       bquote(paste("R"[0], " = ", .(round(N * p_val[["beta"]] / alpha, 2)))), 1)
+  text(.9 * xmax, .78 * ymax,
+       paste("Pr[d|oi] =", round(delta2 / (delta2 + gamma2), 2)), 1)
+  text(.9 * xmax, .63 * ymax, paste("median =", round(log(2) / alpha, 2)), 1)
+  text(.95 * xmax, .605 * ymax, "yr")
+  text(.9 * xmax, .48 * ymax, paste("mean =", round(1 / alpha, 2)), 1)
+  text(.95 * xmax, .455 * ymax, "yr")
+  
+# 3. decrease in disease incidence    
   p2dis_inc(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times1, eps,
             lgnd = FALSE, grid = TRUE)
-  
-# 4. decrease rate
+  legend4("topright", lty = 2:4, lwd = 2, cex = .8,
+         legend = paste0(formatC(round(100 * c(.02, .1, .2)),
+                                 digits = 0, width = 2, format = "f"), "%/yr"))
+
+# 4.
+  inc_at_time(I0, D0, di, x, delta1, gamma1, gamma2, N, horizons, times1)
+  cols <- colorRampPalette(greens)(7)
+  cols <- c(cols[1:2], "white", cols[7])
+  legend4("topright", legend = c("2025", "2030", "...", "2055"),
+          lty = 1, lwd = 2, cex = .8, col = cols)
+    
+# 5. decrease rate
   p2dec_rate(I0, D0, di, x, delta1, gamma1, gamma2, N, p_vals, rates, by, times2,
              lgnd = FALSE)
+  cols <- colorRampPalette(reds)(10)
+  cols <- c(cols[1:2], "white", cols[10])
+  legend4("topright", title = "1 - p", legend = c("0.00", "0.10", "...", "1.00"),
+          lty = 1, lwd = 2, cex = .8, col = cols)
   
-# 5. time to target
+# 6. time to target
   if (is.null(target_vals)) target_vals <- seq(25, di, 25)
   time2val(I0, D0, di, x, delta1, gamma1, gamma2, N, target_vals, times1)
+  ll <- length(target_vals)
+  cols <- colorRampPalette(blues)(ll)
+  cols <- c(cols[1:2], "white", cols[ll])
+  legend4("topright", title = "incidence", legend = c("0.00", "0.10", "...", "1.00"),
+          lty = 1, lwd = 2, cex = .8, col = cols)
+
 }
 ```
 
