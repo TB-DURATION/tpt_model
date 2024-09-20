@@ -32,75 +32,119 @@ You can ask report errors or for additional analysis [here](https://github.com/T
 
 ## Packages
 
-Required: `deSolve`, `tibble`, `purrr`, `dplyr`, `magrittr`, `bbmle`, `RColorBrewer`,
-`parallel`
+Required packages:
 
 ```{r}
-library(tibble)
-library(purrr)
+required <- c(
+  "bbmle",
+  "deSolve",
+  "dplyr",
+  "magrittr",
+  "parallel",
+  "purrr",
+  "RColorBrewer",
+  "tibble")
+
+to_install <- required[! required %in% row.names(installed.packages())]
+if (length(to_install)) install.packages(to_install)
+```
+
+Loading packages:
+
+```{r}
+library(bbmle)
 library(dplyr)
 library(magrittr)
-library(bbmle)
+library(purrr)
+library(tibble)
 ```
 
-## Utilitary functions
+## Parameters and functions
+
+Default line width:
 
 ```{r}
-lwd_val <- 2
+lwd_val <- 4
 ```
 
+Default color:
+
 ```{r}
-ode2 <- function(...) tibble::as_tibble(as.data.frame(deSolve::ode(...)))
+col_dft <- 4
 ```
+
+Tuning of `seq()`:
 
 ```{r}
 seq2 <- function(...) seq(..., le = 512)
 ```
 
-```{r}
-plotl <- function(...) plot(..., type = "l", lwd = 2)
-```
+Tuning of `deSolve::ode()`:
 
 ```{r}
-lines2 <- function(...) lines(..., lwd = 2)
+ode2 <- function(...) tibble::as_tibble(as.data.frame(deSolve::ode(...)))
 ```
 
+A function to plot a line:
+
 ```{r}
-legend2 <- function(...) legend(..., bty = "n")
+plotl <- function(..., lwd = lwd_val) plot(..., type = "l", lwd = lwd)
 ```
+
+The function `plotl()` with a default color:
+
+```{r}
+plotl2 <- function(..., col = col_dft) plotl(..., col = col)
+```
+
+The function `plotl2()` with defined `xlab`:
+
+```{r}
+plotl3 <- function(...) plotl2(..., xlab = "actual duration of treatment (days)")
+```
+
+Line with default line width:
+
+```{r}
+lines2 <- function(...) lines(..., lwd = lwd_val)
+```
+
+Tuning of `dpois2()`:
 
 ```{r}
 dpois2 <- function(...) dpois(..., log = TRUE)
 ```
 
+Tuning of `abline()`:
+
 ```{r}
 abline2 <- function(..., col = 2) abline(..., lwd = lwd_val, col = col)
 ```
 
-```{r}
-plot2 <- function(..., col = 4) plot(..., type = "l", lwd = lwd_val, col = col)
-```
-
-```{r}
-plot4 <- function(...) plot2(..., xlab = "actual duration of treatment (days)")
-```
+Tuning of `legend()`:
 
 ```{r}
 legend2 <- function(...) legend(..., lty = 1, lwd = lwd_val, bty = "n")
 ```
 
+A rewriting of `polygon()` in case the minimal values of $y$ are 0:
+
 ```{r}
-polygon2 <- function(x, y, col = 4, alpha = .2, ...) {
+polygon2 <- function(x, y, col = col_dft, alpha = .2, ...) {
   polygon(c(x[1], x, tail(x, 1)), c(0, y, 0), col = adjustcolor(col, alpha),
           border = NA)
 }
 ```
 
+Rewriting the user interface of `polygon()`:
+
 ```{r}
-polygon3 <- function(x, y1, y2, col = 4, ...) {
+polygon3 <- function(x, y1, y2, col = col_dft, ...) {
   polygon(c(x, rev(x)), c(y1, rev(y2)), col = col, border = NA, ...)
 }
 ```
+
+Tuning of `parallel:mclapply()`:
 
 ```{r}
 mclapply2 <- function(...) {
@@ -136,6 +180,7 @@ hill <- function(x, X, Y, h) {
 Let's illustrate the properties of this equation:
 
 ```{r}
+2+2
 xs <- seq2(0, 40)
 X <- 15
 Y <- .8
@@ -155,15 +200,14 @@ We can model the probability $\upsilon(d)$ of treatment uptake as a function of 
 proposed treatment duration $d$ using a Hill equation as so:
 
 $$
-\upsilon(d) = \frac{X_\upsilon^{h_\upsilon}}{X_\upsilon^{h_\upsilon} + d^{h_\upsilon}}
+\upsilon(d) = Y_\upsilon\frac{X_\upsilon^{h_\upsilon}}{X_\upsilon^{h_\upsilon} + d^{h_\upsilon}}
 $$
 
 In R:
 
 ```{r}
-uptake <- function(pd, Xv, hv) {
-  X2h <- Xv ^ hv
-  X2h / (X2h + pd ^ hv)
+uptake <- function(pd, Xv, Yv, hv) {
+  1 - hill(pd, Xv, Yv, hv)
 }
 ```
 
@@ -171,9 +215,10 @@ An example:
 
 ```{r}
 ds <- seq2(0, 30)
-plot2(ds, uptake(ds, 15, 4), ylim = 0:1,
+plotl2(ds, uptake(ds, 15, 1, 4), ylim = 0:1,
       xlab = "duration of treatment (days)", ylab = "uptake probability")
 ```
+
 
 ### Treatment adherence
 
@@ -216,7 +261,7 @@ probabilities <- function(
     pd = 40,                      # proposed duration of treatment
     Xf  = 25,   Yf = .8, hf = 7,  # fatigue
     Xmp = .875, Ym = 1,  hm = 50, # mitigation of fatigue
-    lwd = 2,
+    lwd = lwd_val,
     ylim = 0:1,
     add = FALSE,
     lgnd = TRUE) {                # whether to add the legend to the plot or not
@@ -312,8 +357,9 @@ effective_duration <- function(
 Let's try it:
 
 ```{r}
+2+2
 with(effective_duration(), {
-  plot4(x, y, ylab = "probability density")
+  plotl3(x, y, ylab = "probability density")
   polygon2(x, y)
 })
 ```
@@ -396,7 +442,7 @@ An illustration:
 
 ```{r}
 ts <- seq2(0, 30)
-plot4(ts, hill(ts, 10, 1, 1), ylim = 0:1, ylab = "treatment efficacy")
+plotl3(ts, hill(ts, 10, 1, 1), ylim = 0:1, ylab = "treatment efficacy")
 ```
 
 ### Full prophylaxis
@@ -415,7 +461,7 @@ pi_value <- function(
     tau = .99,
     pd = 10,
     
-    Xv  = 15, hv = 4,
+    Xv  = 15, Yv = 1, hv = 4,
     Xf  = 200,  Yf = .15, hf = 7,
     Xmp = .875, Ym = 1,   hm = 50,
     Xe  = 10,   Ye = 1,   he = 1,
@@ -424,7 +470,7 @@ pi_value <- function(
     n = 1000) {
   
   tau *
-    uptake(pd, Xv, hv) *
+    uptake(pd, Xv, Yv, hv) *
     hill(draw_durations(pd, Xf, Yf, hf, Xmp, Ym,  hm, by, le, n), Xe, Ye, he)
 }
 ```
@@ -435,7 +481,7 @@ Let's try it:
 pi_value(tau = .9, pd = 10, n = 1e4, le = 1e6) |> 
   density() |> 
   with({
-    plot2(x, y, xlab = "proportion of new infections sterilized",
+    plotl2(x, y, xlab = "proportion of new infections sterilized",
           ylab = "density of probability", xlim = 0:1)
     polygon2(x, y)}
   )
@@ -448,7 +494,7 @@ out1 <- tau_vals |>
   map(~ pi_value(tau = .x, pd = 10, n = 1e4, le = 1e6)) |> 
   map(density)
 
-plot2(NA, xlim = 0:1, ylim = c(0, max(unlist(map(out1, extract2, "y")))),
+plotl2(NA, xlim = 0:1, ylim = c(0, max(unlist(map(out1, extract2, "y")))),
       xlab = "proportion of new infections sterilized", ylab = "density of probability")
 
 walk2(out1, seq_along(tau_vals), ~ with(.x, {

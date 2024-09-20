@@ -1,0 +1,178 @@
+---
+title: "Epidemiological models of TB"
+format:
+  html:
+    html-table-processing: none
+editor: visual
+---
+
+## Packages
+
+```{r}
+required <- c("deSolve",
+              "tibble")
+
+to_install <- required[! required %in% row.names(installed.packages())]
+if (length(to_install)) install.packages(to_install)
+```
+
+## Functions
+
+```{r}
+ode2 <- function(...) {
+  deSolve::ode(...) |> 
+    unclass() |> 
+    tibble::as_tibble()
+}
+```
+
+
+## Dye et al 2013
+
+![Flow diagram of Dye et al (2013)'s model.](Dye2013.png){width=320 #fig-Dye2013}
+
+**Features:**
+
+* slow and fast progression
+* infectious and non-infectious TB
+* relapse
+* TB kills
+* natural immunity
+* re-infection of slow infections
+
+**Assumptions:**
+
+* sterilized individuals are immune for life
+* constant population size
+
+**Interventions:**
+
+* vaccination ($\omega$)
+* clearing of latent infection ($\tau$)
+* detection ($\delta$) and clearing ($\kappa$) of cases
+
+**Differential equations:**
+
+$$
+\begin{align} 
+  \frac{dU}{dt}   &= \mu T + \mu_i I + \mu_n N - \left(\beta\frac{I}{T} + \omega + \mu\right)U  \\
+  \frac{dL_s}{dt} &= (1 - \alpha)\beta\frac{I}{T}U - \left(x\beta\frac{I}{T} + \nu_s + \tau + \mu\right) L_s \\
+  \frac{dL_f}{dt} &= \alpha\beta\frac{I}{T}U - (\nu_f + \tau + \mu) L_f   \\
+  \frac{dI}{dt}   &= \sigma\cdot\left(\left(x\beta\frac{I}{T} + \nu_s\right)L_s + \nu_fL_f + \rho C\right) - (\gamma + \delta\kappa +  \mu + \mu_i) I  \\
+  \frac{dN}{dt}   &= (1 - \sigma)\left(\left(x\beta\frac{I}{T} + \nu_s\right)L_s + \nu_fL_f + \rho C\right)  - (\gamma + \delta\kappa + \mu + \mu_n) N\\
+  \frac{dC}{dt}   &= \omega U + \tau\cdot(L_s + L_f) + (\delta\kappa + \gamma)(I + N) - \rho C
+\end{align}
+$$
+
+:::: {.columns}
+::: {.column width="65%" #tbl-variables tbl-colwidths="[10,60]"}
+| variable | definition                                         |
+|----------|----------------------------------------------------|
+| $U$      | number of uninfected                               |
+| $L_s$    | number of slow-progression latent cases            |
+| $L_f$    | number of fast-progression latent cases            |
+| $I$      | number of infectious TB cases                      |
+| $N$      | number of non-infectious TB cases                  |
+| $C$      | number of cleared and immune                       |
+| $T$      | total population size: $U + L_s + L_f + I + N + C$ |
+
+: State variables and their definition.
+::: 
+::::
+
+**Parameters:**
+
+:::: {.columns}
+::: {.column width="100%" #tbl-parameters tbl-colwidths="[10, 30, 10, 10, 10, 10, 10, 10]"}
+| parameter | definition                                  | value  | S. Africa | India  | China  | USA    | unit |
+|-----------|---------------------------------------------|--------|-----------|--------|--------|--------|------|
+| $\mu$     | birth and death rate (causes other than TB) | 0.0200 | 0.0170    | 0.0140 | 0.0120 | 0.0120 | /year|
+| $\mu_i$   | death rate due to TB for I                  | 0.3000 | 0.1500    | 0.1700 | 0.0600 | 0.0625 | /year|
+| $\mu_n$   | death rate due to TB for N                  | 0.0300 | 0.0300    | 0.0300 | 0.0250 | 0.0375 | /year|
+| $\beta$   | infectious contact rate                     | 8.0000 | 8.5000    | 7.7000 | 8.6500 | 0.7500 | /year|
+| $\nu_s$   | rate of disease progression from $L_s$      | 0.0005 | 0.0005    | 0.0005 | 0.0005 | 0.0010 | /year|
+| $\nu_f$   | rate of disease progression from $L_f$      | 0.6700 | 0.9000    | 0.9000 | 0.9000 | 0.9000 | /year|
+| $\gamma$  | clearance rate due to natural immunity      | 0.1500 | 0.1500    | 0.1500 | 0.1300 | 0.1500 | /year|
+| $\rho$    | relapse rate                                | 0.0100 | 0.0100    | 0.0100 | 0.0100 | 0.0100 | /year|
+| $\alpha$  | proportion of new infections going fast     | 0.1500 | 0.1500    | 0.1500 | 0.1500 | 0.1500 |  --  |
+| $\sigma$  | proportion of TB cases being infectious     | 0.5000 | 0.6500    | 0.6500 | 0.6500 | 0.6500 |  --  |
+| $x$       | proportion of reinfection that develop TB   | 0.3500 | 0.3500    | 0.3500 | 0.3500 | 0.3500 |  --  |
+
+: Parameters with definition and values in absence of intervention.
+::: 
+::::
+
+
+:::: {.columns}
+::: {.column width="100%" #tbl-parameters2 tbl-colwidths="[10, 30, 10, 10, 10, 10, 10, 10]"}
+| parameter | definition                                  | value  | S. Africa | India  | China  | USA    | range | unit |
+|-----------|---------------------------------------------|--------|-----------|--------|--------|--------|-------|------|
+| $\mu$     | birth and death rate (causes other than TB) | 0.0200 | 0.0170    | 0.0140 | 0.0120 | 0.0120 |       | /year|
+| $\mu_i$   | death rate due to TB for I                  | 0.3000 | 0.1500    | 0.1700 | 0.0600 | 0.0625 | 0.1 - 0.22 | /year|
+| $\mu_n$   | death rate due to TB for N                  | 0.0300 | 0.0300    | 0.0300 | 0.0250 | 0.0375 |       | /year|
+| $\beta$   | infectious contact rate                     | 8.0000 | 8.5000    | 7.7000 | 8.6500 | 0.7500 | 6.6 - 8.6 | /year|
+| $\nu_s$   | rate of disease progression from $L_s$      | 0.0005 | 0.0005    | 0.0005 | 0.0005 | 0.0010 | | /year|
+| $\nu_f$   | rate of disease progression from $L_f$      | 0.6700 | 0.9000    | 0.9000 | 0.9000 | 0.9000 | | /year|
+| $\gamma$  | clearance rate due to natural immunity      | 0.1500 | 0.1500    | 0.1500 | 0.1300 | 0.1500 | | /year|
+| $\rho$    | relapse rate                                | 0.0100 | 0.0100    | 0.0100 | 0.0100 | 0.0100 | | /year|
+| $\alpha$  | proportion of new infections going fast     | 0.1500 | 0.1500    | 0.1500 | 0.1500 | 0.1500 | |  --  |
+| $\sigma$  | proportion of TB cases being infectious     | 0.5000 | 0.6500    | 0.6500 | 0.6500 | 0.6500 | |  --  |
+| $x$       | proportion of reinfection that develop TB   | 0.3500 | 0.3500    | 0.3500 | 0.3500 | 0.3500 | |  --  |
+
+: Parameters with definition and values in absence of intervention.
+::: 
+::::
+
+
+
+**Parameters of interventions:**
+
+:::: {.columns}
+::: {.column width="80%" #tbl-intervention_parameters tbl-colwidths="[10,50, 10, 10]"}
+| parameter | definition                                  | value  | unit |
+|-----------|---------------------------------------------|--------|------|
+| $\omega$  | rate of vaccination                         |    | /year|
+| $\tau$    | rate at which latent infections are cleared |    | /year|
+| $\delta$  | rate at which cases are detected            |    | /year|
+| $\kappa$  | rate at which detected cases are cleared    |   | /year|
+
+: Parameters with definition and values in absence of intervention.
+::: 
+::::
+
+
+* $\omega$: rate of vaccination
+* $\tau$: rate at which latent infections are detected and cleared
+* $\delta$: rate at which cases are detected
+* $\kappa$: rate at which detected cases are cleared
+
+
+**R simulator:**
+
+```{r}
+dye2013 <- function(U0, Ls0, Lf0, I0, N0, T,
+                    mu, mui, mun, beta, gamma, omega, nus, nuf, tau, rho, delta, kappa,
+                    sigma, times) {
+  ode2(
+    c(S = U0, Ls = Ls0, Lf = Lf0, I = I0, N = N0, C = T - U0 - Ls0 - Lf0 - I0 - N0),
+    times,
+    function(time, variables, parameters) {
+      with(as.list(c(variables, parameters)), {
+        infections1 <- beta * I * U / T
+        infections2 <- x * beta * I * Ls / T
+        dU  <- mu * T + mui * I + mun * N - infections1 - (omega + mu) * U
+        dLs <- (1 - alpha) * infections1 - infections2 - (nus + tau + mu) * Ls
+        dLf <- alpha * infections1 - (nuf + tau + mu) * Lf
+        dI  <- sigma * (infections2 + nus * Ls + nuf * Lf + rho * C) -
+               (gamma + delta * kappa + mui) * I
+        dN  <- (1 - sigma) * (infections2 + nuf * Lf + rho * C) -
+               (gamma + delta * kappa + mun) * N
+        dC  <- omega * U + tau * (Ls + Lf) + (delta * kappa + gamma) * (I + N) -
+               rho * C
+        list(c(dU, dLs, dLf, dI, dN, dC))})},
+    c(mu = mu, mui = mui, mun = mun, beta = beta, gamma = gamma, omega = omega,
+      nus = nus, nuf = nuf, tau = tau, rho = rho, delta = delta, kappa = kappa,
+      sigma = sigma))
+}
+```
+
